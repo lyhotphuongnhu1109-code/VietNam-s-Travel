@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-ocean-blue: #0284c7;
+    --color-emerald-nature: #059669;
+    --color-earth-clay: #78350f;
+    --color-ripe-rice: #d97706;
+    --color-brick-red: #b91c1c;
+    --color-warm-bg: #faf9f6;
+  }
+
+  body {
+    background-color: #f8fafc;
+    color: #1e293b;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  ::selection {
+    background-color: #0284c7;
+    color: #ffffff;
+  }
+}
+
+/* Custom scrollbar matching Vietnamese Warmth & Ocean theme */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(2, 132, 199, 0.04);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #0284c7;
+}
