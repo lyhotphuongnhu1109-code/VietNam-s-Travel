@@ -1,0 +1,6 @@
+{
+  "name": "VIETNAM'S TRAVEL",
+  "description": "Ứng dụng du lịch toàn diện quảng bá văn hóa Việt Nam, chủ quyền biển đảo thiêng liêng Hoàng Sa - Trường Sa, 54 dân tộc anh em, ẩm thực danh tiếng, bản đồ thuyết minh giọng nói và hỗ trợ phiên dịch cho du khách.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
