@@ -10,13 +10,16 @@ import {
   Plane,
   Home,
   Gift,
+  Sparkles,
 } from 'lucide-react';
 
 import { DESTINATIONS, CUISINE_LIST } from '../data/travelData';
-import { Region, Language } from '../types';
+import { Region, Language, Destination, CuisineItem } from '../types';
 import { playVoiceGuide } from '../utils/speech';
 import { useAuth } from '../context/AuthContext';
 import { KO_DESTINATIONS, KO_CUISINES, tr } from '../data/koreanTranslations';
+import { DestinationDetailModal } from './DestinationDetailModal';
+import { CuisineDetailModal } from './CuisineDetailModal';
 
 interface ExploreDestinationsProps {
   currentLang: Language;
@@ -27,6 +30,8 @@ export const ExploreDestinations: React.FC<ExploreDestinationsProps> = ({ curren
   const [activeTab, setActiveTab] = useState<'all' | 'places' | 'food'>('all');
   const [selectedRegion, setSelectedRegion] = useState<'all' | Region>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
+  const [selectedCuisine, setSelectedCuisine] = useState<CuisineItem | null>(null);
 
   // Filter destinations
   const filteredDestinations = DESTINATIONS.filter((item) => {
@@ -180,24 +185,33 @@ export const ExploreDestinations: React.FC<ExploreDestinationsProps> = ({ curren
         {/* Tab Content: Destinations */}
         {(activeTab === 'all' || activeTab === 'places') && (
           <div className="mb-14">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-sky-600" />
-                <span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-2">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-sky-600" />
+                  <span>
+                    {currentLang === 'vi'
+                      ? 'Danh Thắng Di Sản & Kỳ Quan Thiên Nhiên'
+                      : currentLang === 'ko'
+                      ? '세계유산 명소 & 대자연의 경이'
+                      : 'Iconic Heritage & Natural Wonders'}
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
                   {currentLang === 'vi'
-                    ? 'Danh Thắng Di Sản & Kỳ Quan Thiên Nhiên'
+                    ? 'Nhấp chuột vào từng hình ảnh để xem thư viện ảnh, thông tin chi tiết, giá vé máy bay, khách sạn và địa điểm ăn uống đặc sản.'
                     : currentLang === 'ko'
-                    ? '세계유산 명소 & 대자연의 경이'
-                    : 'Iconic Heritage & Natural Wonders'}
-                </span>
-              </h3>
-              <span className="text-xs text-slate-500 font-medium">
+                    ? '사진을 클릭하시면 상세 갤러리, 여행 정보, 항공권 요금, 호텔 및 로컬 맛집을 확인하실 수 있습니다.'
+                    : 'Click any photo to explore the image gallery, heritage info, flight & hotel prices, and dining spots.'}
+                </p>
+              </div>
+              <span className="text-xs text-slate-500 font-medium shrink-0">
                 {filteredDestinations.length}{' '}
                 {currentLang === 'vi' ? 'địa điểm' : currentLang === 'ko' ? '개 명소' : 'places'}
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredDestinations.map((dest) => {
                 const destKo = KO_DESTINATIONS[dest.id] || KO_DESTINATIONS[dest.id.replace(/-.*/, '')];
                 const displayName =
@@ -212,337 +226,42 @@ export const ExploreDestinations: React.FC<ExploreDestinationsProps> = ({ curren
                     : currentLang === 'ko'
                     ? dest.vietnameseName
                     : dest.vietnameseName;
-                const displayTravelType =
-                  currentLang === 'ko' && destKo?.travelTypeKo
-                    ? destKo.travelTypeKo
-                    : dest.travelType;
-                const displayDesc =
-                  currentLang === 'ko' && destKo?.descKo
-                    ? destKo.descKo
-                    : dest.description;
-                const displayCultural =
-                  currentLang === 'ko' && destKo?.culturalSignificanceKo
-                    ? destKo.culturalSignificanceKo
-                    : dest.culturalSignificance;
-                const displayBestTime =
-                  currentLang === 'ko' && destKo?.bestTimeKo
-                    ? destKo.bestTimeKo
-                    : dest.bestTime;
-                const displayCost =
-                  currentLang === 'vi'
-                    ? dest.estimatedCostVND
-                    : currentLang === 'ko'
-                    ? destKo?.costKo || dest.estimatedCostUSD
-                    : dest.estimatedCostUSD;
 
                 return (
                   <div
                     key={dest.id}
-                    className="bg-white rounded-3xl border border-sky-100 overflow-hidden shadow-xs hover:shadow-lg hover:border-sky-200 transition-all flex flex-col justify-between group"
+                    onClick={() => setSelectedDestination(dest)}
+                    className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer group border border-slate-100 hover:border-sky-300 hover:scale-[1.02] bg-slate-100"
+                    title={
+                      currentLang === 'vi'
+                        ? `Nhấp để xem hình ảnh, thông tin, vé máy bay, khách sạn & ẩm thực tại ${displayName} (${dest.province})`
+                        : currentLang === 'ko'
+                        ? `${displayName} (${dest.province}) 사진, 정보, 항공권, 숙소 및 맛집 전체보기`
+                        : `Click to view photos, info, flights, hotels & dining in ${displayName} (${dest.province})`
+                    }
                   >
-                    <div>
-                      {/* Image */}
-                      <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
-                        <img
-                          src={dest.imageUrl}
-                          alt={displayName}
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                        <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-white text-[11px] font-bold flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-sky-400" />
-                          <span>{dest.province}</span>
-                        </div>
-                        <div
-                          className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-white text-[10px] font-bold uppercase tracking-wider shadow-xs ${
-                            dest.category === 'nature'
-                              ? 'bg-emerald-600'
-                              : dest.category === 'heritage'
-                              ? 'bg-red-700'
-                              : dest.category === 'beach'
-                              ? 'bg-sky-600'
-                              : 'bg-[#78350f]'
-                          }`}
-                        >
-                          {currentLang === 'vi'
-                            ? dest.category === 'nature'
-                              ? '🌿 Thiên Nhiên'
-                              : dest.category === 'heritage'
-                              ? '🏛️ Di Sản'
-                              : dest.category === 'cultural'
-                              ? '🎎 Văn Hóa'
-                              : dest.category === 'beach'
-                              ? '🌊 Biển Đảo'
-                              : '⭐ Lịch Sử'
-                            : currentLang === 'ko'
-                            ? dest.category === 'nature'
-                              ? '🌿 자연 경관'
-                              : dest.category === 'heritage'
-                              ? '🏛️ 세계유산'
-                              : dest.category === 'cultural'
-                              ? '🎎 민족 문화'
-                              : dest.category === 'beach'
-                              ? '🌊 청정 해양'
-                              : '⭐ 역사 유적'
-                            : dest.category.toUpperCase()}
-                        </div>
+                    {/* Destination Image - High quality visual fill */}
+                    <img
+                      src={dest.imageUrl}
+                      alt={displayName}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                    />
+
+                    {/* Gradient shadow at bottom to make city/province name crystal clear */}
+                    <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-slate-950/80 via-slate-950/30 to-transparent pointer-events-none" />
+
+                    {/* City / Province Name Tag */}
+                    <div className="absolute bottom-3.5 left-3.5 right-3.5 flex items-center justify-between pointer-events-none">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-950/75 backdrop-blur-md text-white text-xs font-bold border border-white/20 shadow-lg group-hover:border-amber-400/60 transition-colors">
+                        <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                        <span className="tracking-tight">{dest.province}</span>
                       </div>
 
-                      {/* Content */}
-                      <div className="p-5">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <div>
-                            <h4 className="text-lg font-black text-slate-900 group-hover:text-sky-600 transition-colors">
-                              {displayName}
-                            </h4>
-                            <p className="text-xs text-slate-500 font-medium">
-                              {displaySub}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Travel Type Badge */}
-                        <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-sky-50 text-sky-800 text-[11px] font-semibold mb-3 border border-sky-200">
-                          <Tag className="w-3 h-3 text-sky-600" />
-                          <span>{displayTravelType}</span>
-                        </div>
-
-                        <p className="text-xs text-slate-600 line-clamp-3 mb-3 leading-relaxed">
-                          {displayDesc}
-                        </p>
-
-                        {/* Cultural Significance box - Earthy Clay & Teak Warmth */}
-                        <div className="p-3 rounded-xl bg-[#fdfbf7] border border-[#e7ded4] text-[11px] text-[#5c3826] mb-3">
-                          <strong className="font-bold block mb-0.5 text-[#78350f]">
-                            {currentLang === 'vi'
-                              ? '🏛️ Ý nghĩa văn hóa & lịch sử:'
-                              : currentLang === 'ko'
-                              ? '🏛️ 문화 및 역사적 스토리:'
-                              : '🏛️ Cultural Story & Heritage:'}
-                          </strong>
-                          <p className="line-clamp-2 leading-relaxed">{displayCultural}</p>
-                        </div>
-
-                        {/* Best time & Cost - Golden Ripe Rice Accent */}
-                        <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-100">
-                          <span>
-                            <strong>
-                              {currentLang === 'vi'
-                                ? 'Thời gian đẹp:'
-                                : currentLang === 'ko'
-                                ? '최적 시기:'
-                                : 'Best time:'}
-                            </strong>{' '}
-                            {displayBestTime}
-                          </span>
-                          <span className="font-extrabold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-                            {displayCost}
-                          </span>
-                        </div>
+                      {/* Subtle hover indicator icon */}
+                      <div className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-amber-300 opacity-0 group-hover:opacity-100 transition-all scale-90 group-hover:scale-100">
+                        <Sparkles className="w-3.5 h-3.5" />
                       </div>
-                    </div>
-
-                    {/* Actions: Thuyết minh, Đặt vé Traveloka, Video */}
-                    <div className="p-4 pt-0 flex items-center justify-between gap-2">
-                      <button
-                        onClick={() => {
-                          const voiceText =
-                            currentLang === 'vi'
-                              ? dest.voiceGuideVi
-                              : currentLang === 'ko'
-                              ? destKo?.voiceKo || dest.voiceGuideKo || dest.voiceGuideEn
-                              : dest.voiceGuideEn;
-                          playVoiceGuide(voiceText, currentLang);
-                        }}
-                        className="flex-1 py-2 rounded-xl bg-sky-50 hover:bg-sky-600 hover:text-white text-sky-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-sky-200"
-                      >
-                        <Volume2 className="w-3.5 h-3.5" />
-                        <span>
-                          {currentLang === 'vi'
-                            ? 'Thuyết minh'
-                            : currentLang === 'ko'
-                            ? '음성 해설'
-                            : 'Audio Guide'}
-                        </span>
-                      </button>
-
-                      {dest.videoUrl && (
-                        <button
-                          onClick={() => {
-                            setActiveTab('videos');
-                            const el = document.getElementById('video-showcase');
-                            if (el) {
-                              el.scrollIntoView({ behavior: 'smooth' });
-                            }
-                          }}
-                          className="p-2 rounded-xl bg-red-50 hover:bg-red-600 hover:text-white text-red-600 border border-red-200 transition-colors cursor-pointer"
-                          title={
-                            currentLang === 'vi'
-                              ? 'Xem video 3 miền'
-                              : currentLang === 'ko'
-                              ? '3대 지역 영상 보기'
-                              : 'Watch 3-region videos'
-                          }
-                        >
-                          <Play className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Traveloka Full Booking Suite for this Destination */}
-                    <div className="px-4 pb-3.5 pt-2 border-t border-slate-100 bg-slate-50/70">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#0194f3]" />
-                          <span>
-                            {currentLang === 'vi'
-                              ? 'Đặt dịch vụ qua Traveloka:'
-                              : currentLang === 'ko'
-                              ? 'Traveloka 간편 예약:'
-                              : 'Book with Traveloka:'}
-                          </span>
-                        </span>
-                        <span className="text-[9px] font-black text-amber-700 bg-amber-100 px-1.5 py-0.2 rounded">
-                          Official Partner
-                        </span>
-                      </div>
-                      {(() => {
-                        const airportMap: Record<string, string> = {
-                          hanoi: 'HAN',
-                          'ha-noi': 'HAN',
-                          'da-nang': 'DAD',
-                          'hoi-an': 'DAD',
-                          hue: 'HUI',
-                          'sa-pa': 'HAN',
-                          'ha-long': 'HPH',
-                          'ninh-binh': 'HAN',
-                          'ha-giang': 'HAN',
-                          'phu-quoc': 'PQC',
-                          'nha-trang': 'CXR',
-                          'da-lat': 'DLI',
-                          'sai-gon': 'SGN',
-                          'ho-chi-minh': 'SGN',
-                          'can-tho': 'VCA',
-                          'con-dao': 'VCS',
-                          'quy-nhon': 'UIH',
-                          'mui-ne': 'SGN',
-                          'phan-thiet': 'SGN',
-                          'vung-tau': 'SGN',
-                          'cao-bang': 'HAN',
-                          'dong-hoi': 'VDH',
-                          'phong-nha': 'VDH',
-                          'tuy-hoa': 'TBB',
-                          'phu-yen': 'TBB',
-                          'buon-ma-thuot': 'BMV',
-                          pleiku: 'PXU',
-                        };
-                        const destAirport = airportMap[dest.id] || 'DAD';
-                        const originAirport = destAirport === 'HAN' ? 'SGN' : 'HAN';
-
-                        return (
-                          <div className="grid grid-cols-4 gap-1">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                openTravelokaModal('flight', {
-                                  originCode: originAirport,
-                                  destCode: destAirport,
-                                  cityId: dest.id,
-                                })
-                              }
-                              className="py-1.5 px-1 rounded-xl bg-white hover:bg-sky-50 text-sky-800 border border-slate-200 hover:border-sky-300 text-[10px] font-bold transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer shadow-2xs hover:scale-102"
-                              title={
-                                currentLang === 'vi'
-                                  ? 'Đặt vé máy bay'
-                                  : currentLang === 'ko'
-                                  ? '항공권 예약'
-                                  : 'Book Flight'
-                              }
-                            >
-                              <Plane className="w-3.5 h-3.5 text-[#0194f3]" />
-                              <span className="truncate">
-                                {currentLang === 'vi'
-                                  ? 'Vé bay'
-                                  : currentLang === 'ko'
-                                  ? '항공권'
-                                  : 'Flight'}
-                              </span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                openTravelokaModal('hotel', {
-                                  cityId: dest.id,
-                                  destCode: destAirport,
-                                })
-                              }
-                              className="py-1.5 px-1 rounded-xl bg-white hover:bg-emerald-50 text-emerald-800 border border-slate-200 hover:border-emerald-300 text-[10px] font-bold transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer shadow-2xs hover:scale-102"
-                              title={
-                                currentLang === 'vi'
-                                  ? 'Đặt phòng khách sạn'
-                                  : currentLang === 'ko'
-                                  ? '호텔 예약'
-                                  : 'Book Hotel'
-                              }
-                            >
-                              <Home className="w-3.5 h-3.5 text-emerald-600" />
-                              <span className="truncate">
-                                {currentLang === 'vi'
-                                  ? 'Khách sạn'
-                                  : currentLang === 'ko'
-                                  ? '호텔'
-                                  : 'Hotel'}
-                              </span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                openTravelokaModal('combo', {
-                                  originCode: originAirport,
-                                  destCode: destAirport,
-                                  cityId: dest.id,
-                                })
-                              }
-                              className="py-1.5 px-1 rounded-xl bg-white hover:bg-amber-50 text-amber-900 border border-slate-200 hover:border-amber-300 text-[10px] font-bold transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer shadow-2xs hover:scale-102"
-                              title={
-                                currentLang === 'vi'
-                                  ? 'Combo vé + phòng tiết kiệm 30%'
-                                  : currentLang === 'ko'
-                                  ? '항공+호텔 30% 절약 콤보'
-                                  : 'Save 30% Combo'
-                              }
-                            >
-                              <Gift className="w-3.5 h-3.5 text-amber-600" />
-                              <span className="truncate font-black text-amber-700">
-                                {currentLang === 'ko' ? '콤보 -30%' : 'Combo -30%'}
-                              </span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                openTravelokaModal('xperience', { cityId: dest.id })
-                              }
-                              className="py-1.5 px-1 rounded-xl bg-white hover:bg-purple-50 text-purple-900 border border-slate-200 hover:border-purple-300 text-[10px] font-bold transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer shadow-2xs hover:scale-102"
-                              title={
-                                currentLang === 'vi'
-                                  ? 'Vé vui chơi & hoạt động'
-                                  : currentLang === 'ko'
-                                  ? '입장권 & 투어 패스'
-                                  : 'Attraction Tickets'
-                              }
-                            >
-                              <Compass className="w-3.5 h-3.5 text-purple-600" />
-                              <span className="truncate">
-                                {currentLang === 'vi'
-                                  ? 'Vé vui chơi'
-                                  : currentLang === 'ko'
-                                  ? '입장권'
-                                  : 'Passes'}
-                              </span>
-                            </button>
-                          </div>
-                        );
-                      })()}
                     </div>
                   </div>
                 );
@@ -554,18 +273,27 @@ export const ExploreDestinations: React.FC<ExploreDestinationsProps> = ({ curren
         {/* Tab Content: Cuisine */}
         {(activeTab === 'all' || activeTab === 'food') && (
           <div className="mb-14">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                <Utensils className="w-5 h-5 text-amber-600" />
-                <span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-2">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                  <Utensils className="w-5 h-5 text-amber-600" />
+                  <span>
+                    {currentLang === 'vi'
+                      ? 'Tinh Hoa Ẩm Thực 3 Miền Đậm Đà Bản Sắc'
+                      : currentLang === 'ko'
+                      ? '3대 지역의 진수 & 베트남 전통 미식'
+                      : 'Regional Gastronomy & Culinary Heritage'}
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
                   {currentLang === 'vi'
-                    ? 'Tinh Hoa Ẩm Thực 3 Miền Đậm Đà Bản Sắc'
+                    ? 'Nhấp chuột vào từng món ăn để xem danh sách các quán ăn ngon nổi tiếng trên toàn quốc và câu chuyện ẩm thực đặc sắc.'
                     : currentLang === 'ko'
-                    ? '3대 지역의 진수 & 베트남 전통 미식'
-                    : 'Regional Gastronomy & Culinary Heritage'}
-                </span>
-              </h3>
-              <span className="text-xs text-slate-500 font-medium">
+                    ? '사진을 클릭하시면 전국의 유명 맛집 목록과 요리 이야기를 확인하실 수 있습니다.'
+                    : 'Click any dish to explore top famous eateries nationwide and authentic culinary stories.'}
+                </p>
+              </div>
+              <span className="text-xs text-slate-500 font-medium shrink-0">
                 {filteredCuisines.length}{' '}
                 {currentLang === 'vi'
                   ? 'món ngon'
@@ -575,7 +303,7 @@ export const ExploreDestinations: React.FC<ExploreDestinationsProps> = ({ curren
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredCuisines.map((food) => {
                 const foodKo = KO_CUISINES[food.id];
                 const displayName =
@@ -584,121 +312,43 @@ export const ExploreDestinations: React.FC<ExploreDestinationsProps> = ({ curren
                     : currentLang === 'ko'
                     ? foodKo?.nameKo || food.name
                     : food.name;
-                const displaySub =
-                  currentLang === 'vi'
-                    ? food.name
-                    : currentLang === 'ko'
-                    ? food.vietnameseName
-                    : food.vietnameseName;
-                const displayDesc =
-                  currentLang === 'ko' && foodKo?.descKo
-                    ? foodKo.descKo
-                    : food.description;
-                const displayTaste =
-                  currentLang === 'ko' && foodKo?.tasteKo
-                    ? foodKo.tasteKo
-                    : food.tasteProfile;
-                const spots =
-                  currentLang === 'ko' && foodKo?.spotsKo
-                    ? foodKo.spotsKo
-                    : food.recommendedPlaces;
 
                 return (
                   <div
                     key={food.id}
-                    className="bg-white rounded-3xl border border-sky-100 overflow-hidden shadow-xs hover:shadow-lg hover:border-amber-200 transition-all flex flex-col justify-between group"
+                    onClick={() => setSelectedCuisine(food)}
+                    className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer group border border-slate-100 hover:border-amber-300 hover:scale-[1.02] bg-slate-100"
+                    title={
+                      currentLang === 'vi'
+                        ? `Nhấp chuột vào để xem danh sách quán ăn ngon trên toàn quốc cho món ${displayName}`
+                        : currentLang === 'ko'
+                        ? `${displayName} 전국 유명 맛집 목록 보기`
+                        : `Click to view top eateries nationwide for ${displayName}`
+                    }
                   >
-                    <div>
-                      {/* Image */}
-                      <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
-                        <img
-                          src={food.imageUrl}
-                          alt={displayName}
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                        <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-white text-[11px] font-bold">
-                          {food.region === 'North'
-                            ? tr(currentLang, 'Miền Bắc', 'North', '북부')
-                            : food.region === 'Central'
-                            ? tr(currentLang, 'Miền Trung', 'Central', '중부')
-                            : tr(currentLang, 'Miền Nam', 'South', '남부')}
-                        </div>
-                        <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 text-[11px] font-black shadow-md border border-amber-300">
-                          {food.averagePriceVND}
-                        </div>
-                      </div>
+                    {/* Pure dish image on the outside */}
+                    <img
+                      src={food.imageUrl}
+                      alt={displayName}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500 ease-out"
+                    />
 
-                      {/* Content */}
-                      <div className="p-5">
-                        <h4 className="text-lg font-black text-slate-900 group-hover:text-amber-700 transition-colors mb-1">
+                    {/* Gradient shadow at bottom to make dish name crystal clear */}
+                    <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-slate-950/90 via-slate-950/45 to-transparent pointer-events-none" />
+
+                    {/* Dish Name Only on the outside - no province/city as requested */}
+                    <div className="absolute bottom-3.5 left-3.5 right-3.5 flex items-end justify-between pointer-events-none gap-2">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-white text-base sm:text-lg font-black tracking-tight leading-snug drop-shadow-md group-hover:text-amber-300 transition-colors line-clamp-1">
                           {displayName}
                         </h4>
-                        <p className="text-xs text-slate-500 mb-2">{displaySub}</p>
-
-                        <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-50 text-amber-800 text-[11px] font-semibold mb-3 border border-amber-200">
-                          <Tag className="w-3 h-3 text-amber-600" />
-                          <span>{food.travelType}</span>
-                        </div>
-
-                        <p className="text-xs text-slate-600 line-clamp-3 mb-3 leading-relaxed">
-                          {displayDesc}
-                        </p>
-
-                        {/* Cultural Story - Warm Earthy Clay and Flavors */}
-                        <div className="p-3 rounded-xl bg-[#faf6f0] border border-[#e8ded1] text-[11px] text-[#5c3826] mb-3">
-                          <strong className="text-[#78350f] block mb-0.5 font-bold">
-                            {currentLang === 'vi'
-                              ? '🥢 Hương vị & Nét văn hóa:'
-                              : currentLang === 'ko'
-                              ? '🥢 미식의 특징 & 문화:'
-                              : '🥢 Flavor & Cultural Heritage:'}
-                          </strong>
-                          <p className="line-clamp-2 leading-relaxed">{displayTaste}</p>
-                        </div>
-
-                        {/* Recommended Places */}
-                        <div className="text-[11px] text-slate-500">
-                          <strong className="text-slate-800 block mb-1">
-                            {currentLang === 'vi'
-                              ? 'Quán ngon gợi ý:'
-                              : currentLang === 'ko'
-                              ? '추천 맛집:'
-                              : 'Famous spots:'}
-                          </strong>
-                          <ul className="list-disc list-inside space-y-0.5">
-                            {spots.slice(0, 2).map((place, idx) => (
-                              <li key={idx} className="truncate">
-                                {place}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
                       </div>
-                    </div>
 
-                    <div className="p-4 pt-0">
-                      <button
-                        onClick={() => {
-                          const voiceText =
-                            currentLang === 'vi'
-                              ? `${food.vietnameseName}. ${food.description}. ${food.tasteProfile}. Giá trung bình: ${food.averagePriceVND}`
-                              : currentLang === 'ko'
-                              ? `${displayName}. ${displayDesc} ${displayTaste}. 평균 가격: ${food.averagePriceVND}`
-                              : `${food.name}. ${food.description}. ${food.tasteProfile}. Average price: ${food.averagePriceVND}`;
-                          playVoiceGuide(voiceText, currentLang);
-                        }}
-                        className="w-full py-2 rounded-xl bg-amber-50 hover:bg-amber-500 hover:text-slate-950 text-amber-900 border border-amber-200 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
-                      >
-                        <Volume2 className="w-3.5 h-3.5" />
-                        <span>
-                          {currentLang === 'vi'
-                            ? 'Nghe giới thiệu món'
-                            : currentLang === 'ko'
-                            ? '요리 음성 소개'
-                            : 'Audio Guide'}
-                        </span>
-                      </button>
+                      {/* Subtle hover indicator icon */}
+                      <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-amber-300 opacity-0 group-hover:opacity-100 transition-all scale-90 group-hover:scale-100 shrink-0">
+                        <Utensils className="w-4 h-4" />
+                      </div>
                     </div>
                   </div>
                 );
@@ -707,6 +357,24 @@ export const ExploreDestinations: React.FC<ExploreDestinationsProps> = ({ curren
           </div>
         )}
       </div>
+
+      {/* Rich Destination Detail Modal (Images, Info, Flight & Hotel Rates, Dining) */}
+      {selectedDestination && (
+        <DestinationDetailModal
+          destination={selectedDestination}
+          currentLang={currentLang}
+          onClose={() => setSelectedDestination(null)}
+        />
+      )}
+
+      {/* Rich Cuisine Detail Modal (Images, Info, Flight & Hotel Rates, Dining Spots) */}
+      {selectedCuisine && (
+        <CuisineDetailModal
+          cuisine={selectedCuisine}
+          currentLang={currentLang}
+          onClose={() => setSelectedCuisine(null)}
+        />
+      )}
     </section>
   );
 };

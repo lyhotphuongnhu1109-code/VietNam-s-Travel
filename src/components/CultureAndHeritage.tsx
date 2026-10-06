@@ -57,8 +57,6 @@ interface CultureAndHeritageProps {
   currentLang: Language;
 }
 
-export type CulturalPillarType = 'all' | 'costume' | 'architecture' | 'festival';
-
 // 1. Đặc trưng trang phục độc bản 54 Dân tộc Việt Nam
 const ETHNIC_COSTUME_SIGNATURES: Record<string, { vi: string; en: string }> = {
   kinh: { vi: 'Áo dài lụa ngũ thân / Áo bà ba & Nón lá sen', en: 'Silk Ao Dai / Ba Ba shirt & Conical palm hat' },
@@ -233,28 +231,6 @@ const ETHNIC_FESTIVAL_SIGNATURES: Record<string, { vi: string; en: string; highl
   ngai: { vi: 'Tết Thanh Minh & Lễ tạ ơn mùa màng, hát Sường cô giao duyên', en: 'Tomb Sweeping Festival, harvest thanksgiving rites & Suong Co love duets', highlightRitual: 'Hát Sường Cô giao duyên' },
 };
 
-// 🏛️ Kiến trúc nhà ở tiêu biểu 54 Dân tộc kèm hình ảnh thực tế
-const ARCHITECTURE_PREVIEWS = [
-  { id: 'trình tường', nameVi: 'Nhà Trình Tường Đất Nện', nameKo: '전통 흙벽 찐뜨엉 가옥', nameEn: 'Rammed-Earth House', image: nhaTrinhTuongImg, ethnicDesc: 'H’Mông, Hà Nhì, Lô Lô, La Chí' },
-  { id: 'khau cút', nameVi: 'Nhà Sàn Nóc Khau Cút', nameKo: '카우꿋 뿔 장식 고상가옥', nameEn: 'Stilt House Khau Cut', image: nhaSanTayBacImg, ethnicDesc: 'Thái, Tày, Nùng, Mường, Lào' },
-  { id: 'rông', nameVi: 'Nhà Rông Cao Vút', nameKo: '하늘 높이 솟은 냐롱', nameEn: 'Soaring Rong House', image: tayNguyenRongGongImg, ethnicDesc: 'Ba Na, Gia Rai, Xơ Đăng, Cơ Tu' },
-  { id: 'dài', nameVi: 'Nhà Dài Mẫu Hệ', nameKo: '모계 전통 냐자이(긴 집)', nameEn: 'Matriarchal Longhouse', image: nhaDaiEDeImg, ethnicDesc: 'Ê Đê, M’Nông, Chu Ru, Chơ Ro' },
-  { id: 'ngói', nameVi: 'Nhà Ngói Cổ Ba Gian', nameKo: '고풍스러운 3칸 기와집', nameEn: 'Ancient 3-Bay House', image: nhaBaGianKinhImg, ethnicDesc: 'Kinh, Hoa, Sán Dìu, Ngái' },
-  { id: 'tháp', nameVi: 'Tháp Gạch Nung & Chùa Tháp', nameKo: '참파 붉은 벽돌 사원 탑', nameEn: 'Brick Tower Sanctuaries', image: thapChamArchImg, ethnicDesc: 'Chăm, Khmer, Raglai' },
-];
-
-// 🎊 Lễ hội truyền thống tiêu biểu 54 Dân tộc kèm hình ảnh thực tế
-const FESTIVAL_PREVIEWS = [
-  { id: 'hùng vương', nameVi: 'Giỗ Tổ Hùng Vương & Hội Làng', nameKo: '훙왕 기일 & 마을 축제', nameEn: 'Hung Kings & Village Fests', image: leHoiGioToKinhImg, ethnicDesc: 'Kinh, Hoa, Ngái' },
-  { id: 'lồng tồng', nameVi: 'Lễ Hội Lồng Tồng & Hát Then', nameKo: '롱똥 들판 축제 & 텐 노래', nameEn: 'Long Tong Down-to-Field', image: leHoiLongTongImg, ethnicDesc: 'Tày, Nùng, Sán Chay, Mường' },
-  { id: 'hoa ban', nameVi: 'Lễ Hội Hoa Ban & Múa Xòe', nameKo: '호아반 꽃 축제 & 쏘에 춤', nameEn: 'Ban Flower & Xoe Dance', image: leHoiHoaBanXoeImg, ethnicDesc: 'Thái, Lào, Lự, La Ha' },
-  { id: 'cấp sắc', nameVi: 'Đại Lễ Cấp Sắc Trưởng Thành', nameKo: '자오족 깝삭 성인식', nameEn: 'Cap Sac Ordination Rite', image: leCapSacDaoImg, ethnicDesc: 'Dao, Pà Thẻn, Sán Dìu' },
-  { id: 'chiêng', nameVi: 'Không Gian Cồng Chiêng Tây Nguyên', nameKo: '떠이응우옌 징·공 문화 공간', nameEn: 'Central Highlands Gong Culture', image: leHoiCongChiengImg, ethnicDesc: 'Gia Rai, Ba Na, Ê Đê, Xơ Đăng' },
-  { id: 'đua ghe', nameVi: 'Lễ Đua Ghe Ngo & Ok Om Bok', nameKo: '응오 보트 경주 & 옥옴복', nameEn: 'Ngo Boat Race & Ok Om Bok', image: leHoiDuaGheImg, ethnicDesc: 'Khmer, Chơ Ro' },
-  { id: 'katê', nameVi: 'Đại Lễ Hội Ka-tê Đền Tháp', nameKo: '카테(Kate) 사원 탑 축제', nameEn: 'Kate Tower Sanctuary Festival', image: chamCultureDanceImg, ethnicDesc: 'Chăm, Ra-glai' },
-  { id: 'gầu tào', nameVi: 'Lễ Hội Gầu Tào & Múa Khèn', nameKo: '가우따오 봄 축제 & 캔 춤', nameEn: 'Gau Tao Spring Festival', image: hmongBatikCostumeImg, ethnicDesc: 'H’Mông, Hà Nhì, La Hủ' },
-];
-
 export const CultureAndHeritage: React.FC<CultureAndHeritageProps> = ({ currentLang }) => {
   const [activeTab, setActiveTab] = useState<'ethnic' | 'monuments'>('ethnic');
   const [selectedEthnic, setSelectedEthnic] = useState<EthnicGroupDetail>(ALL_54_ETHNIC_GROUPS[0]);
@@ -267,10 +243,6 @@ export const CultureAndHeritage: React.FC<CultureAndHeritageProps> = ({ currentL
   const [modalAspect, setModalAspect] = useState<'costume' | 'architecture' | 'festival'>('costume');
   const [splitViewAspect, setSplitViewAspect] = useState<'costume' | 'architecture' | 'festival'>('costume');
   const [cardImageAspects, setCardImageAspects] = useState<Record<string, 'costume' | 'architecture' | 'festival'>>({});
-
-  // 🌟 Active cultural pillar: 'all' | 'costume' | 'architecture' | 'festival'
-  const [culturalPillar, setCulturalPillar] = useState<CulturalPillarType>('all');
-  const [pillarSubFilter, setPillarSubFilter] = useState<string>('all');
 
   // Filters for 54 Ethnic Groups
   const [searchEthnicQuery, setSearchEthnicQuery] = useState('');
@@ -313,28 +285,9 @@ export const CultureAndHeritage: React.FC<CultureAndHeritageProps> = ({ currentL
           koData.culturalHighlightKo.toLowerCase().includes(query)
         ));
 
-      // Sub-filter for specific architecture / costume / festival styles
-      let matchesSubFilter = true;
-      if (pillarSubFilter !== 'all') {
-        const sub = pillarSubFilter.toLowerCase();
-        if (culturalPillar === 'architecture') {
-          const arch = group.architecture.toLowerCase();
-          const sig = ETHNIC_ARCHITECTURE_SIGNATURES[group.id]?.vi.toLowerCase() || '';
-          matchesSubFilter = arch.includes(sub) || sig.includes(sub);
-        } else if (culturalPillar === 'costume') {
-          const cost = group.traditionalCostume.toLowerCase();
-          const sig = ETHNIC_COSTUME_SIGNATURES[group.id]?.vi.toLowerCase() || '';
-          matchesSubFilter = cost.includes(sub) || sig.includes(sub);
-        } else if (culturalPillar === 'festival') {
-          const fest = group.festivals.toLowerCase();
-          const sig = ETHNIC_FESTIVAL_SIGNATURES[group.id]?.vi.toLowerCase() || '';
-          matchesSubFilter = fest.includes(sub) || sig.includes(sub);
-        }
-      }
-
-      return matchesFamily && matchesRegion && matchesSearch && matchesSubFilter;
+      return matchesFamily && matchesRegion && matchesSearch;
     });
-  }, [searchEthnicQuery, selectedFamily, selectedRegion, culturalPillar, pillarSubFilter]);
+  }, [searchEthnicQuery, selectedFamily, selectedRegion]);
 
   // Modal navigation handlers
   const handleNextEthnicModal = () => {
@@ -357,15 +310,7 @@ export const CultureAndHeritage: React.FC<CultureAndHeritageProps> = ({ currentL
   ) => {
     setSelectedEthnic(group);
     setZoomedEthnicImage(group);
-    if (aspect) {
-      setModalAspect(aspect);
-    } else if (culturalPillar === 'architecture') {
-      setModalAspect('architecture');
-    } else if (culturalPillar === 'festival') {
-      setModalAspect('festival');
-    } else {
-      setModalAspect('costume');
-    }
+    setModalAspect(aspect || 'costume');
   };
 
   return (
@@ -447,454 +392,6 @@ export const CultureAndHeritage: React.FC<CultureAndHeritageProps> = ({ currentL
         {/* Tab 1: Full 54 Ethnic Groups Showcase */}
         {activeTab === 'ethnic' && (
           <div className="space-y-8">
-            {/* 🌟 3 NÉT ĐẶC TRƯNG VĂN HÓA 54 DÂN TỘC: TRANG PHỤC - KIẾN TRÚC NHÀ Ở - LỄ HỘI */}
-            <div className="bg-gradient-to-br from-[#1a1412] via-[#241a17] to-[#161f30] rounded-3xl p-5 sm:p-7 text-white shadow-xl border border-amber-600/30 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
-
-              <div className="relative z-10 space-y-5">
-                {/* Header */}
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  <div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 text-xs font-bold uppercase tracking-wider mb-2 border border-amber-400/30">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                      <span>
-                        {currentLang === 'vi'
-                          ? '3 Trụ Cột Bản Sắc 54 Dân Tộc'
-                          : currentLang === 'ko'
-                          ? '54개 민족의 3대 문화 기둥'
-                          : '3 Pillars of 54 Ethnic Heritages'}
-                      </span>
-                    </div>
-                    <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
-                      <span>
-                        {currentLang === 'vi'
-                          ? 'Đặc Trưng Trang Phục • Kiến Trúc Nhà Ở • Lễ Hội Dân Gian'
-                          : currentLang === 'ko'
-                          ? '전통 의상 • 주거 건축 • 민속 축제'
-                          : 'Traditional Costumes • Architecture • Festive Heritage'}
-                      </span>
-                    </h3>
-                    <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
-                      {currentLang === 'vi'
-                        ? 'Khám phá đầy đủ các kiểu đặc trưng trang phục dệt thổ cẩm, kiến trúc nếp nhà cổ truyền và các lễ hội linh thiêng của trọn vẹn 54 dân tộc anh em trên dải đất Việt Nam.'
-                        : currentLang === 'ko'
-                        ? '베트남 전역 54개 형제 민족의 고유한 전통 직물 의상, 독창적인 주거 건축 양식, 신성한 민속 축제를 탐험하세요.'
-                        : 'Explore distinct traditional costumes, indigenous architecture styles, and sacred folk festivals across all 54 ethnic groups of Vietnam.'}
-                    </p>
-                  </div>
-
-                  {/* 4 Main Pillar Switcher Buttons */}
-                  <div className="flex items-center gap-1.5 flex-wrap bg-slate-900/90 p-1.5 rounded-2xl border border-slate-700">
-                    {[
-                      { id: 'all', labelVi: 'Tất cả 3 đặc trưng', labelKo: '3대 고유 특징 전체', labelEn: 'All 3 Pillars', icon: Compass },
-                      { id: 'costume', labelVi: 'Đặc trưng Trang phục', labelKo: '전통 의상 & 직물', labelEn: 'Costumes & Brocade', icon: Shirt },
-                      { id: 'architecture', labelVi: 'Kiến trúc Nhà ở', labelKo: '전통 주거 건축', labelEn: 'Traditional Dwellings', icon: Home },
-                      { id: 'festival', labelVi: 'Đặc trưng Lễ hội', labelKo: '축제 & 민속 신앙', labelEn: 'Festivals & Rituals', icon: Music },
-                    ].map((tab) => {
-                      const Icon = tab.icon;
-                      const isActive = culturalPillar === tab.id;
-                      const label = currentLang === 'vi' ? tab.labelVi : currentLang === 'ko' ? tab.labelKo : tab.labelEn;
-                      return (
-                        <button
-                          key={tab.id}
-                          onClick={() => {
-                            setCulturalPillar(tab.id as CulturalPillarType);
-                            setPillarSubFilter('all');
-                          }}
-                          className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                            isActive
-                              ? 'bg-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/20'
-                              : 'text-slate-300 hover:text-white hover:bg-slate-800'
-                          }`}
-                        >
-                          <Icon className="w-3.5 h-3.5" />
-                          <span>{label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Contextual Characteristic Knowledge Card & Sub-filter chips */}
-                {culturalPillar === 'costume' && (
-                  <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/40 space-y-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="p-2 rounded-xl bg-amber-500 text-slate-950">
-                          <Shirt className="w-4 h-4" />
-                        </span>
-                        <div>
-                          <h4 className="text-sm font-black text-amber-300">
-                            {currentLang === 'vi'
-                              ? 'Đặc Trưng Trang Phục Cổ Truyền 54 Dân Tộc'
-                              : currentLang === 'ko'
-                              ? '54개 민족 전통 의상 및 직물 예술'
-                              : 'Traditional Costumes of 54 Ethnic Groups'}
-                          </h4>
-                          <p className="text-xs text-amber-100/80">
-                            {currentLang === 'vi'
-                              ? 'Dệt sợi lanh tự nhiên, nhuộm chàm cổ truyền, vẽ sáp ong (Batik), thêu khăn Piêu hoa ban, áo Cóm cúc bướm bạc, váy thổ cẩm Zèng cườm chì, xà rông Sampot lụa óng ả.'
-                              : currentLang === 'ko'
-                              ? '천연 아마포 직조, 전통 천연 쪽 염색, 바틱(밀랍화), 화반꽃 자수 피에우 스카프, 은나비 단추 꼼 블라우스, 납구슬 젬 직물, 금실 삼폿 실크 등 다채로운 전통 의상.'
-                              : 'Organic hemp weaving, indigo dyeing, beeswax batik, embroidered Pieu scarves, silver-buttoned Com blouses, lead-beaded Zeng textiles, and gold-threaded silk Sampots.'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Quick Sub-filters */}
-                    <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-amber-500/20">
-                      <span className="text-[11px] font-bold text-amber-300 uppercase tracking-wider mr-1">
-                        {currentLang === 'vi' ? 'Kiểu dáng tiêu biểu:' : currentLang === 'ko' ? '대표 의상 양식:' : 'Costume types:'}
-                      </span>
-                      {[
-                        { id: 'all', labelVi: 'Tất cả 54 dân tộc', labelKo: '54개 민족 전체', labelEn: 'All 54 Groups' },
-                        { id: 'sáp ong', labelVi: 'Váy Lanh & Vẽ Sáp Ong', labelKo: '아마포 & 바틱(밀랍화)', labelEn: 'Hemp & Batik' },
-                        { id: 'cóm', labelVi: 'Áo Cóm & Khăn Piêu', labelKo: '꼼 블라우스 & 피에우', labelEn: 'Com & Pieu' },
-                        { id: 'chàm', labelVi: 'Áo Chàm & Kiềng Bạc', labelKo: '쪽 염색 & 은목걸이', labelEn: 'Indigo & Silver' },
-                        { id: 'đỏ', labelVi: 'Khăn Mũ Đỏ Bông Len', labelKo: '붉은 털모자 & 방울', labelEn: 'Red Headdress' },
-                        { id: 'zèng', labelVi: 'Thổ Cẩm Dèng/Zèng Cườm Chì', labelKo: '납구슬 젬(Zeng) 직물', labelEn: 'Zeng Weaving' },
-                        { id: 'sampot', labelVi: 'Xà Rông Sampot & Khăn Sbay', labelKo: '삼폿 실크 & 스바이', labelEn: 'Sampot & Sbay' },
-                        { id: 'áo dài', labelVi: 'Áo Dài & Áo Bà Ba', labelKo: '아오자이 & 아오바바', labelEn: 'Ao Dai & Ba Ba' },
-                      ].map((item) => {
-                        const lbl = currentLang === 'vi' ? item.labelVi : currentLang === 'ko' ? item.labelKo : item.labelEn;
-                        return (
-                          <button
-                            key={item.id}
-                            onClick={() => setPillarSubFilter(item.id)}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                              pillarSubFilter === item.id
-                                ? 'bg-amber-400 text-slate-950 font-black'
-                                : 'bg-slate-900/80 text-amber-200 border border-amber-500/30 hover:bg-amber-500/20'
-                            }`}
-                          >
-                            {lbl}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {culturalPillar === 'architecture' && (
-                  <div className="p-4 rounded-2xl bg-sky-950/40 border border-sky-500/40 space-y-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="p-2 rounded-xl bg-sky-500 text-slate-950">
-                          <Home className="w-4 h-4" />
-                        </span>
-                        <div>
-                          <h4 className="text-sm font-black text-sky-300">
-                            {currentLang === 'vi'
-                              ? 'Đặc Trưng Kiến Trúc Nhà Ở 54 Dân Tộc'
-                              : currentLang === 'ko'
-                              ? '54개 민족 전통 주거 건축'
-                              : 'Traditional Housing & Architecture'}
-                          </h4>
-                          <p className="text-xs text-sky-100/80">
-                            {currentLang === 'vi'
-                              ? 'Nhà Rông cao 15-20m sừng sững tựa cánh buồm, Nhà Dài mẫu hệ cầu thang khắc đôi bầu sữa mẹ, Nhà Sàn gỗ nóc khau cút gác chéo, Nhà Trình Tường đất nện 50cm rào đá ấm đông mát hè, Nhà Ngói cổ ba gian, Tháp gạch Chăm pa, Chùa tháp Khmer.'
-                              : currentLang === 'ko'
-                              ? '15~20m 돛단배 형상의 웅장한 롱(Rông) 공공가옥, 어머니의 가슴이 조각된 모계 사회의 롱하우스, 지붕 뿔 카우꿋(Khau cút) 고상가옥, 50cm 두께의 흙벽과 돌담으로 둘러싸인 온난한 토벽가옥, 3칸 기와집, 참파 붉은 벽돌 사탑, 크메르 다층 사원 등.'
-                              : 'Towering Rong communal halls, matriarchal longhouses with female stairs, crossed khau-cut stilt roofs, 50cm thick rammed-earth earthen homes, and ancient red-brick tower sanctuaries.'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Quick Sub-filters */}
-                    <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-sky-500/20">
-                      <span className="text-[11px] font-bold text-sky-300 uppercase tracking-wider mr-1">
-                        {currentLang === 'vi' ? 'Kiểu nếp nhà:' : currentLang === 'ko' ? '대표 가옥 양식:' : 'Dwelling types:'}
-                      </span>
-                      {[
-                        { id: 'all', labelVi: 'Tất cả 54 kiểu nhà', labelKo: '54개 가옥 전체', labelEn: 'All 54 Styles' },
-                        { id: 'rông', labelVi: 'Nhà Rông Tây Nguyên', labelKo: '떠이응우옌 롱(Rông) 가옥', labelEn: 'Rong House' },
-                        { id: 'khau cút', labelVi: 'Nhà Sàn Nóc Khau Cút', labelKo: '카우꿋(Khau cút) 고상가옥', labelEn: 'Khau Cut Stilt' },
-                        { id: 'dài', labelVi: 'Nhà Dài Mẫu Hệ', labelKo: '모계 사회 롱하우스', labelEn: 'Matriarchal Longhouse' },
-                        { id: 'trình tường', labelVi: 'Nhà Trình Tường Đất Nện', labelKo: '동반 고원 토벽가옥', labelEn: 'Rammed-Earth' },
-                        { id: 'ngói', labelVi: 'Nhà Ngói Cổ Ba Gian', labelKo: '전통 3칸 기와집', labelEn: 'Three-Bay Tiled' },
-                        { id: 'tháp', labelVi: 'Tháp Gạch Nung & Chùa Tháp', labelKo: '참파 사탑 & 크메르 사원', labelEn: 'Champa & Khmer Towers' },
-                        { id: 'mai rùa', labelVi: 'Nhà Sàn Khum Mai Rùa', labelKo: '거북이 등껍질 고상가옥', labelEn: 'Turtle-Shell Roof' },
-                      ].map((item) => {
-                        const lbl = currentLang === 'vi' ? item.labelVi : currentLang === 'ko' ? item.labelKo : item.labelEn;
-                        return (
-                          <button
-                            key={item.id}
-                            onClick={() => setPillarSubFilter(item.id)}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                              pillarSubFilter === item.id
-                                ? 'bg-sky-400 text-slate-950 font-black'
-                                : 'bg-slate-900/80 text-sky-200 border border-sky-500/30 hover:bg-sky-500/20'
-                            }`}
-                          >
-                            {lbl}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* 🏛️ Bộ sưu tập hình ảnh kiến trúc thực tế 54 Dân tộc */}
-                    <div className="pt-2">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[11px] font-bold text-sky-200 flex items-center gap-1.5">
-                          <Camera className="w-3.5 h-3.5 text-sky-400" />
-                          <span>
-                            {currentLang === 'vi'
-                              ? 'Hình ảnh kiến trúc tiêu biểu (bấm để xem & lọc):'
-                              : currentLang === 'ko'
-                              ? '대표 주거 건축 사진 갤러리 (클릭하여 필터링):'
-                              : 'Architecture photo gallery (click to filter):'}
-                          </span>
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
-                        {ARCHITECTURE_PREVIEWS.map((item) => {
-                          const isSubActive = pillarSubFilter === item.id;
-                          return (
-                            <button
-                              key={item.id}
-                              onClick={() => setPillarSubFilter(pillarSubFilter === item.id ? 'all' : item.id)}
-                              className={`group text-left rounded-xl overflow-hidden border transition-all cursor-pointer ${
-                                isSubActive
-                                  ? 'border-sky-400 ring-2 ring-sky-400/50 shadow-md shadow-sky-500/30'
-                                  : 'border-sky-500/30 hover:border-sky-400/80 bg-slate-900/70'
-                              }`}
-                            >
-                              <div className="aspect-[4/3] w-full overflow-hidden relative">
-                                <img
-                                  src={item.image}
-                                  alt={item.nameVi}
-                                  referrerPolicy="no-referrer"
-                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-                                <span className="absolute bottom-1 left-1.5 right-1.5 text-[10px] font-black text-white leading-tight drop-shadow-xs line-clamp-1">
-                                  {currentLang === 'vi' ? item.nameVi : currentLang === 'ko' ? item.nameKo : item.nameEn}
-                                </span>
-                              </div>
-                              <div className="p-1.5 bg-slate-900/90 text-[9px] text-sky-300 font-medium truncate">
-                                {item.ethnicDesc}
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {culturalPillar === 'festival' && (
-                  <div className="p-4 rounded-2xl bg-purple-950/40 border border-purple-500/40 space-y-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="p-2 rounded-xl bg-purple-500 text-slate-950">
-                          <Music className="w-4 h-4" />
-                        </span>
-                        <div>
-                          <h4 className="text-sm font-black text-purple-300">
-                            {currentLang === 'vi'
-                              ? 'Đặc Trưng Lễ Hội & Phong Tục 54 Dân Tộc'
-                              : currentLang === 'ko'
-                              ? '54개 민족 전통 축제 & 민속 신앙'
-                              : 'Festivals & Ceremonies of 54 Ethnic Groups'}
-                          </h4>
-                          <p className="text-xs text-purple-100/80">
-                            {currentLang === 'vi'
-                              ? 'Không gian văn hóa Cồng chiêng đại ngàn, Lễ hội Lồng Tồng xuống đồng tung còn, Nghi lễ Cấp Sắc trưởng thành, Đua ghe Ngo Sóc Trăng, Đại lễ Ka-tê Chăm pa, Lễ hội Nhảy Lửa chân trần than hồng, Tết Chôl Chnăm Thmây.'
-                              : currentLang === 'ko'
-                              ? '유네스코 인류무형문화유산 떠이응우옌 징(Cồng chiêng) 문화 공간, 롱통(Lồng Tồng) 봄맞이 기원 축제, 깝삭(Cấp Sắc) 성인식 의례, 속짱 크메르 응오(Ngo) 보트 축제, 참파 카테(Ka-tê) 대축제, 맨발 불꽃 댄스 등.'
-                              : 'Sacred UNESCO Gong space, Long Tong field opening festival, Cap Sac adult ordination rites, Soc Trang Ngo boat regatta, Kate sanctuaries, and barefoot Fire Dancing.'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Quick Sub-filters */}
-                    <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-purple-500/20">
-                      <span className="text-[11px] font-bold text-purple-300 uppercase tracking-wider mr-1">
-                        {currentLang === 'vi' ? 'Lễ hội & Nghi thức:' : currentLang === 'ko' ? '대표 축제 및 의례:' : 'Festival rituals:'}
-                      </span>
-                      {[
-                        { id: 'all', labelVi: 'Tất cả 54 lễ hội', labelKo: '54개 축제 전체', labelEn: 'All 54 Festivals' },
-                        { id: 'lồng tồng', labelVi: 'Lồng Tồng & Xuống Đồng', labelKo: '롱통 봄맞이 파종 축제', labelEn: 'Long Tong Festival' },
-                        { id: 'cấp sắc', labelVi: 'Đại Lễ Cấp Sắc Trưởng Thành', labelKo: '자오족 깝삭 성인식', labelEn: 'Cap Sac Ordination' },
-                        { id: 'chiêng', labelVi: 'Lễ Hội Cồng Chiêng', labelKo: '떠이응우옌 징 문화 축제', labelEn: 'Gong Culture' },
-                        { id: 'katê', labelVi: 'Đại Lễ Hội Ka-tê', labelKo: '참파 왕실 카테 대축제', labelEn: 'Kate Festival' },
-                        { id: 'hoa ban', labelVi: 'Lễ Hội Hoa Ban', labelKo: '서북부 화반꽃 축제', labelEn: 'Ban Flower Festival' },
-                        { id: 'đua ghe', labelVi: 'Đua Ghe Ngo & Ok Om Bok', labelKo: '속짱 응오 보트 경주 & 옥옴복', labelEn: 'Ngo Boat Regatta' },
-                        { id: 'hùng vương', labelVi: 'Giỗ Tổ Hùng Vương & Tết', labelKo: '훙왕 기일 & 뗏 구정', labelEn: 'Hung Kings & Tet' },
-                      ].map((item) => {
-                        const lbl = currentLang === 'vi' ? item.labelVi : currentLang === 'ko' ? item.labelKo : item.labelEn;
-                        return (
-                          <button
-                            key={item.id}
-                            onClick={() => setPillarSubFilter(item.id)}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                              pillarSubFilter === item.id
-                                ? 'bg-purple-400 text-slate-950 font-black'
-                                : 'bg-slate-900/80 text-purple-200 border border-purple-500/30 hover:bg-purple-500/20'
-                            }`}
-                          >
-                            {lbl}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* 🎊 Bộ sưu tập hình ảnh lễ hội thực tế 54 Dân tộc */}
-                    <div className="pt-2">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[11px] font-bold text-purple-200 flex items-center gap-1.5">
-                          <Camera className="w-3.5 h-3.5 text-purple-400" />
-                          <span>
-                            {currentLang === 'vi'
-                              ? 'Hình ảnh lễ hội truyền thống (bấm để xem & lọc):'
-                              : currentLang === 'ko'
-                              ? '대표 전통 축제 갤러리 (클릭하여 필터링):'
-                              : 'Festival photo gallery (click to filter):'}
-                          </span>
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
-                        {FESTIVAL_PREVIEWS.map((item) => {
-                          const isSubActive = pillarSubFilter === item.id;
-                          return (
-                            <button
-                              key={item.id}
-                              onClick={() => setPillarSubFilter(pillarSubFilter === item.id ? 'all' : item.id)}
-                              className={`group text-left rounded-xl overflow-hidden border transition-all cursor-pointer ${
-                                isSubActive
-                                  ? 'border-purple-400 ring-2 ring-purple-400/50 shadow-md shadow-purple-500/30'
-                                  : 'border-purple-500/30 hover:border-purple-400/80 bg-slate-900/70'
-                              }`}
-                            >
-                              <div className="aspect-[4/3] w-full overflow-hidden relative">
-                                <img
-                                  src={item.image}
-                                  alt={item.nameVi}
-                                  referrerPolicy="no-referrer"
-                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-                                <span className="absolute bottom-1 left-1.5 right-1.5 text-[9px] font-black text-white leading-tight drop-shadow-xs line-clamp-1">
-                                  {currentLang === 'vi' ? item.nameVi : currentLang === 'ko' ? item.nameKo : item.nameEn}
-                                </span>
-                              </div>
-                              <div className="p-1 bg-slate-900/90 text-[8.5px] text-purple-300 font-medium truncate">
-                                {item.ethnicDesc}
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {culturalPillar === 'all' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                    <div
-                      onClick={() => setCulturalPillar('costume')}
-                      className="p-3.5 rounded-2xl bg-amber-950/30 border border-amber-500/30 hover:border-amber-400 cursor-pointer transition-all group flex gap-3 items-center"
-                    >
-                      <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-amber-500/40 relative">
-                        <img
-                          src={hmongBatikCostumeImg}
-                          alt="Trang phục"
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <Shirt className="w-3.5 h-3.5 text-amber-400" />
-                          <h4 className="text-xs font-black text-amber-300 truncate">
-                            {currentLang === 'vi'
-                              ? '1. Đặc Trưng Trang Phục'
-                              : currentLang === 'ko'
-                              ? '1. 전통 복식 & 직물 예술'
-                              : '1. Traditional Costumes'}
-                          </h4>
-                        </div>
-                        <p className="text-[11px] text-slate-300 leading-snug line-clamp-2">
-                          {currentLang === 'vi'
-                            ? 'Váy lanh vẽ sáp ong, áo Cóm cúc bướm, khăn Piêu thêu hoa ban, áo chàm ngũ thân, thổ cẩm Zèng cườm chì.'
-                            : currentLang === 'ko'
-                            ? '천연 아마포 바틱(밀랍화), 은나비 단추 꼼 블라우스, 피에우 자수 스카프, 쪽 염색 전통 옷, 납구슬 젬(Zèng) 직물.'
-                            : 'Hemp batik skirts, Com blouses, Pieu scarves, indigo gowns, and lead-beaded Zeng textiles.'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div
-                      onClick={() => setCulturalPillar('architecture')}
-                      className="p-3.5 rounded-2xl bg-sky-950/30 border border-sky-500/30 hover:border-sky-400 cursor-pointer transition-all group flex gap-3 items-center"
-                    >
-                      <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-sky-500/40 relative">
-                        <img
-                          src={tayNguyenRongGongImg}
-                          alt="Kiến trúc"
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <Home className="w-3.5 h-3.5 text-sky-400" />
-                          <h4 className="text-xs font-black text-sky-300 truncate">
-                            {currentLang === 'vi'
-                              ? '2. Kiến Trúc Nhà Ở'
-                              : currentLang === 'ko'
-                              ? '2. 전통 주거 건축'
-                              : '2. Traditional Architecture'}
-                          </h4>
-                        </div>
-                        <p className="text-[11px] text-slate-300 leading-snug line-clamp-2">
-                          {currentLang === 'vi'
-                            ? 'Nhà Rông đại ngàn 15-20m, Nhà Dài mẫu hệ, Nhà Sàn nóc khau cút, Nhà Trình Tường đất nện, Nhà Ngói cổ ba gian.'
-                            : currentLang === 'ko'
-                            ? '15~20m 웅장한 떠이응우옌 롱(Rông) 공공가옥, 모계 사회 롱하우스, 지붕 뿔 카우꿋 고상가옥, 흙벽 토벽가옥, 전통 3칸 기와집.'
-                            : 'Towering Rong halls, matriarchal longhouses, khau-cut stilt roofs, and thick rammed-earth earthen homes.'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div
-                      onClick={() => setCulturalPillar('festival')}
-                      className="p-3.5 rounded-2xl bg-purple-950/30 border border-purple-500/30 hover:border-purple-400 cursor-pointer transition-all group flex gap-3 items-center"
-                    >
-                      <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-purple-500/40 relative">
-                        <img
-                          src={leHoiCongChiengImg}
-                          alt="Lễ hội"
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <Music className="w-3.5 h-3.5 text-purple-400" />
-                          <h4 className="text-xs font-black text-purple-300 truncate">
-                            {currentLang === 'vi'
-                              ? '3. Lễ Hội & Phong Tục'
-                              : currentLang === 'ko'
-                              ? '3. 전통 축제 & 민속 의례'
-                              : '3. Festivals & Rituals'}
-                          </h4>
-                        </div>
-                        <p className="text-[11px] text-slate-300 leading-snug line-clamp-2">
-                          {currentLang === 'vi'
-                            ? 'Cồng chiêng Tây Nguyên, Lễ hội Lồng Tồng, Đại lễ Cấp Sắc, Đua ghe Ngo Ok Om Bok, Đại lễ Ka-tê, Giỗ Tổ Hùng Vương.'
-                            : currentLang === 'ko'
-                            ? '유네스코 떠이응우옌 징·공 문화, 롱똥 봄 축제, 깝삭 성인식, 옥옴복 응오 보트 경주, 카테 축제, 훙왕 기일 대제전.'
-                            : 'UNESCO Gong spaces, Long Tong field rites, Cap Sac ordinations, Ngo boat races, and Kate sanctuaries.'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
             {/* Filter & Search Toolbar */}
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-sky-100 shadow-xs space-y-4">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1113,13 +610,7 @@ export const CultureAndHeritage: React.FC<CultureAndHeritageProps> = ({ currentL
                         >
                           <div>
                             {(() => {
-                              const activeAspect =
-                                cardImageAspects[group.id] ||
-                                (culturalPillar === 'architecture'
-                                  ? 'architecture'
-                                  : culturalPillar === 'festival'
-                                  ? 'festival'
-                                  : 'costume');
+                              const activeAspect = cardImageAspects[group.id] || 'costume';
 
                               const cardDisplayImg =
                                 activeAspect === 'architecture'
@@ -1286,13 +777,7 @@ export const CultureAndHeritage: React.FC<CultureAndHeritageProps> = ({ currentL
                               {/* 3 Pillars of Distinctive Characteristics (Trang Phục - Kiến Trúc - Lễ Hội) */}
                               <div className="space-y-2">
                                 {/* Pillar 1: Trang phục */}
-                                <div
-                                  className={`p-2.5 rounded-xl transition-all ${
-                                    culturalPillar === 'costume'
-                                      ? 'bg-amber-50 border-2 border-amber-400 shadow-xs'
-                                      : 'bg-amber-50/50 border border-amber-100/80'
-                                  }`}
-                                >
+                                <div className="p-2.5 rounded-xl transition-all bg-amber-50/50 border border-amber-100/80">
                                   <div className="flex items-center justify-between gap-1 mb-0.5">
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-amber-900 flex items-center gap-1">
                                       <Shirt className="w-3 h-3 text-amber-700 shrink-0" />
@@ -1304,11 +789,6 @@ export const CultureAndHeritage: React.FC<CultureAndHeritageProps> = ({ currentL
                                           : 'Traditional attire:'}
                                       </span>
                                     </span>
-                                    {culturalPillar === 'costume' && (
-                                      <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-amber-400 text-slate-950">
-                                        {currentLang === 'vi' ? 'Tiêu điểm' : currentLang === 'ko' ? '선택됨' : 'Active'}
-                                      </span>
-                                    )}
                                   </div>
                                   <p className="text-[11px] text-slate-700 font-medium line-clamp-2 leading-snug">
                                     {currentLang === 'vi'
@@ -1320,13 +800,7 @@ export const CultureAndHeritage: React.FC<CultureAndHeritageProps> = ({ currentL
                                 </div>
 
                                 {/* Pillar 2: Kiến trúc nhà ở với hình ảnh minh họa thực tế */}
-                                <div
-                                  className={`p-2.5 rounded-xl transition-all ${
-                                    culturalPillar === 'architecture'
-                                      ? 'bg-sky-50 border-2 border-sky-400 shadow-xs'
-                                      : 'bg-sky-50/40 border border-sky-100/80'
-                                  }`}
-                                >
+                                <div className="p-2.5 rounded-xl transition-all bg-sky-50/40 border border-sky-100/80">
                                   <div className="flex items-center justify-between gap-1 mb-1">
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-sky-900 flex items-center gap-1">
                                       <Home className="w-3 h-3 text-sky-700 shrink-0" />
@@ -1338,11 +812,6 @@ export const CultureAndHeritage: React.FC<CultureAndHeritageProps> = ({ currentL
                                           : 'Architecture:'}
                                       </span>
                                     </span>
-                                    {culturalPillar === 'architecture' && (
-                                      <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-sky-500 text-white">
-                                        {currentLang === 'vi' ? 'Tiêu điểm' : currentLang === 'ko' ? '선택됨' : 'Active'}
-                                      </span>
-                                    )}
                                   </div>
                                   <div className="flex items-start gap-2">
                                     <p className="flex-1 text-[11px] text-slate-700 font-medium line-clamp-2 leading-snug">
@@ -1381,13 +850,7 @@ export const CultureAndHeritage: React.FC<CultureAndHeritageProps> = ({ currentL
                                 </div>
 
                                 {/* Pillar 3: Lễ hội & Phong tục với hình ảnh minh họa thực tế */}
-                                <div
-                                  className={`p-2.5 rounded-xl transition-all ${
-                                    culturalPillar === 'festival'
-                                      ? 'bg-purple-50 border-2 border-purple-400 shadow-xs'
-                                      : 'bg-purple-50/40 border border-purple-100/80'
-                                  }`}
-                                >
+                                <div className="p-2.5 rounded-xl transition-all bg-purple-50/40 border border-purple-100/80">
                                   <div className="flex items-center justify-between gap-1 mb-1">
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-purple-900 flex items-center gap-1">
                                       <Music className="w-3 h-3 text-purple-700 shrink-0" />
@@ -1399,11 +862,6 @@ export const CultureAndHeritage: React.FC<CultureAndHeritageProps> = ({ currentL
                                           : 'Festivals:'}
                                       </span>
                                     </span>
-                                    {culturalPillar === 'festival' && (
-                                      <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-purple-500 text-white">
-                                        {currentLang === 'vi' ? 'Tiêu điểm' : currentLang === 'ko' ? '선택됨' : 'Active'}
-                                      </span>
-                                    )}
                                   </div>
                                   <div className="flex items-start gap-2">
                                     <p className="flex-1 text-[11px] text-slate-700 font-medium line-clamp-2 leading-snug">

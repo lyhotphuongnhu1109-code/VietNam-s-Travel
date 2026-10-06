@@ -138,14 +138,14 @@ export const DestinationDetailModal: React.FC<DestinationDetailModalProps> = ({
       }}
     >
       <div
-        className="bg-white rounded-3xl border border-sky-100 shadow-2xl max-w-4xl w-full my-auto overflow-hidden text-slate-800 transition-all animate-in zoom-in-95 duration-200 flex flex-col max-h-[92vh]"
+        className="bg-white rounded-3xl border border-sky-100 shadow-2xl max-w-4xl w-full my-auto overflow-hidden text-slate-800 transition-all animate-in zoom-in-95 duration-200 flex flex-col max-h-[94vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with gradient & branding */}
-        <div className="p-4 sm:p-6 bg-gradient-to-r from-sky-700 via-sky-600 to-teal-700 text-white flex items-center justify-between shrink-0 relative">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-xs flex items-center justify-center text-white border border-white/20 shadow-xs shrink-0">
-              <Compass className="w-6 h-6 text-amber-300" />
+        <div className="p-3.5 sm:p-4.5 bg-gradient-to-r from-sky-700 via-sky-600 to-teal-700 text-white flex items-center justify-between shrink-0 relative">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-xs flex items-center justify-center text-white border border-white/20 shadow-xs shrink-0">
+              <Compass className="w-5 h-5 text-amber-300" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
@@ -174,26 +174,41 @@ export const DestinationDetailModal: React.FC<DestinationDetailModalProps> = ({
           </button>
         </div>
 
-        {/* Photo Gallery Showcase */}
+        {/* Photo Gallery Showcase - Compact image banner so information section has maximum space */}
         <div className="relative bg-slate-950 shrink-0 overflow-hidden">
-          {/* Main Large Image */}
-          <div className="relative aspect-[16/9] sm:aspect-[21/9] max-h-72 w-full overflow-hidden bg-slate-900">
+          {/* Main Image - Compact height to give maximum space to information */}
+          <div className="relative h-16 sm:h-20 w-full overflow-hidden bg-slate-900">
             <img
               src={currentImage.url}
               alt={currentCaption}
               referrerPolicy="no-referrer"
               className="w-full h-full object-cover transition-all duration-300"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-black/30" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-transparent to-black/25" />
 
-            {/* Bottom Caption Overlay */}
-            <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between gap-3 text-white text-xs">
-              <span className="font-semibold line-clamp-1 drop-shadow-md">
+            {/* Bottom Caption & Thumbnail Indicators Overlay */}
+            <div className="absolute bottom-1 left-3 right-3 flex items-center justify-between gap-2 text-white text-xs">
+              <span className="font-semibold line-clamp-1 drop-shadow-md text-[11px] sm:text-xs">
                 📸 {currentCaption}
               </span>
-              <span className="px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-xs text-[10px] font-bold shrink-0">
-                {selectedImageIdx + 1} / {galleryImages.length}
-              </span>
+              <div className="flex items-center gap-1 shrink-0">
+                {galleryImages.map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setSelectedImageIdx(idx)}
+                    className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                      selectedImageIdx === idx
+                        ? 'w-5 bg-amber-400'
+                        : 'w-1.5 bg-white/50 hover:bg-white/80'
+                    }`}
+                    aria-label={`Slide ${idx + 1}`}
+                  />
+                ))}
+                <span className="px-1.5 py-0.5 rounded-md bg-black/60 backdrop-blur-xs text-[10px] font-bold ml-1">
+                  {selectedImageIdx + 1}/{galleryImages.length}
+                </span>
+              </div>
             </div>
 
             {/* Prev / Next controls */}
@@ -204,106 +219,90 @@ export const DestinationDetailModal: React.FC<DestinationDetailModalProps> = ({
                   onClick={() =>
                     setSelectedImageIdx((prev) => (prev > 0 ? prev - 1 : galleryImages.length - 1))
                   }
-                  className="absolute left-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-xs transition-colors cursor-pointer"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black/40 hover:bg-black/75 text-white backdrop-blur-xs transition-colors cursor-pointer"
                   aria-label="Previous image"
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button
                   type="button"
                   onClick={() =>
                     setSelectedImageIdx((prev) => (prev < galleryImages.length - 1 ? prev + 1 : 0))
                   }
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-xs transition-colors cursor-pointer"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black/40 hover:bg-black/75 text-white backdrop-blur-xs transition-colors cursor-pointer"
                   aria-label="Next image"
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </>
             )}
           </div>
-
-          {/* Thumbnail Strip */}
-          {galleryImages.length > 1 && (
-            <div className="p-2 bg-slate-900 flex items-center gap-2 overflow-x-auto custom-scrollbar">
-              {galleryImages.map((img, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setSelectedImageIdx(idx)}
-                  className={`w-16 h-11 rounded-lg overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
-                    selectedImageIdx === idx
-                      ? 'border-amber-400 scale-105 shadow-md'
-                      : 'border-transparent opacity-60 hover:opacity-100'
-                  }`}
-                >
-                  <img
-                    src={img.url}
-                    alt={img.captionVi}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
-        {/* Tab Navigation Controls */}
-        <div className="flex items-center bg-slate-50 border-b border-slate-200 px-4 sm:px-6 overflow-x-auto custom-scrollbar shrink-0">
+        {/* Tab Navigation Controls with integrated quick price/count badges */}
+        <div className="flex items-center bg-slate-50 border-b border-slate-200 px-3 sm:px-6 overflow-x-auto custom-scrollbar shrink-0">
           <button
             onClick={() => setActiveTab('info')}
-            className={`py-3 px-3.5 sm:px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+            className={`py-2.5 px-3 sm:px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
               activeTab === 'info'
-                ? 'border-sky-600 text-sky-700 bg-sky-50/50'
+                ? 'border-sky-600 text-sky-700 bg-sky-50/60'
                 : 'border-transparent text-slate-600 hover:text-slate-900'
             }`}
           >
             <Info className="w-4 h-4 text-sky-600" />
             <span>
-              {currentLang === 'vi' ? 'Thông Tin & Điểm Nhấn' : currentLang === 'ko' ? '기본 정보 & 주요 볼거리' : 'Overview & Highlights'}
+              {currentLang === 'vi' ? 'Thông Tin & Di Sản' : currentLang === 'ko' ? '기본 정보 & 볼거리' : 'Overview & Info'}
             </span>
           </button>
 
           <button
             onClick={() => setActiveTab('flights')}
-            className={`py-3 px-3.5 sm:px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+            className={`py-2.5 px-3 sm:px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
               activeTab === 'flights'
-                ? 'border-sky-600 text-sky-700 bg-sky-50/50'
+                ? 'border-[#0194f3] text-[#007ce8] bg-sky-50/60'
                 : 'border-transparent text-slate-600 hover:text-slate-900'
             }`}
           >
             <Plane className="w-4 h-4 text-[#0194f3]" />
             <span>
-              {currentLang === 'vi' ? 'Vé Máy Bay Giá Tốt' : currentLang === 'ko' ? '항공권 가격 & 노선' : 'Flight Tickets & Routes'}
+              {currentLang === 'vi' ? 'Giá Vé Máy Bay' : currentLang === 'ko' ? '항공권 가격' : 'Flight Tickets'}
+            </span>
+            <span className="px-1.5 py-0.5 rounded-full bg-sky-100 text-[#0194f3] text-[10px] font-black">
+              {details.flights.airportCode}
             </span>
           </button>
 
           <button
             onClick={() => setActiveTab('hotels')}
-            className={`py-3 px-3.5 sm:px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+            className={`py-2.5 px-3 sm:px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
               activeTab === 'hotels'
-                ? 'border-sky-600 text-sky-700 bg-sky-50/50'
+                ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50'
                 : 'border-transparent text-slate-600 hover:text-slate-900'
             }`}
           >
             <Home className="w-4 h-4 text-emerald-600" />
             <span>
-              {currentLang === 'vi' ? 'Giá Khách Sạn & Resort' : currentLang === 'ko' ? '호텔 & 리조트 숙소' : 'Hotel Rates & Stays'}
+              {currentLang === 'vi' ? 'Giá Khách Sạn & Resort' : currentLang === 'ko' ? '호텔 & 숙소 가격' : 'Hotels & Rates'}
+            </span>
+            <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black">
+              {details.hotels.tiers[0]?.priceRange ? details.hotels.tiers[0].priceRange.split('/')[0].trim() : 'Từ 350k'}
             </span>
           </button>
 
           <button
             onClick={() => setActiveTab('dining')}
-            className={`py-3 px-3.5 sm:px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+            className={`py-2.5 px-3 sm:px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
               activeTab === 'dining'
-                ? 'border-sky-600 text-sky-700 bg-sky-50/50'
+                ? 'border-amber-600 text-amber-800 bg-amber-50/50'
                 : 'border-transparent text-slate-600 hover:text-slate-900'
             }`}
           >
             <Utensils className="w-4 h-4 text-amber-600" />
             <span>
-              {currentLang === 'vi' ? 'Địa Điểm Ăn Uống & Đặc Sản' : currentLang === 'ko' ? '추천 맛집 & 로컬 미식' : 'Dining Spots & Cuisine'}
+              {currentLang === 'vi' ? 'Địa Điểm Ăn Uống' : currentLang === 'ko' ? '추천 맛집' : 'Dining Spots'}
+            </span>
+            <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-black">
+              {details.diningSpots.length} {currentLang === 'vi' ? 'quán' : 'spots'}
             </span>
           </button>
         </div>

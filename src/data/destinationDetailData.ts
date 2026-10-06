@@ -27,6 +27,7 @@ import comTamImg from '../assets/images/com_tam_saigon_1789530596304.jpg';
 import miQuangImg from '../assets/images/mi_quang_danang_1789530609604.jpg';
 import banhXeoImg from '../assets/images/banh_xeo_mientay_1789530626361.jpg';
 import eggCoffeeImg from '../assets/images/egg_coffee_hanoi_1789530640290.jpg';
+import hmongBatikCostumeImg from '../assets/images/hmong_culture_batik_costume_1790731658331.jpg';
 
 export interface DestinationGalleryImage {
   url: string;
@@ -43,6 +44,8 @@ export interface DestinationDiningSpot {
   openingHours: string;
   rating: number;
   highlightTip: string;
+  city?: string;
+  region?: string;
 }
 
 export interface DestinationFlightInfo {
@@ -425,7 +428,7 @@ export const DESTINATION_DETAILS: Record<string, DestinationFullGuide> = {
   'da-nang-city': {
     gallery: [
       { url: danangImg, captionVi: 'Cầu Vàng Bà Nà Hills - Dải lụa vàng giữa mây trời Đà Nẵng', captionEn: 'Golden Bridge held by giant stone hands in Ba Na Hills', captionKo: '거대한 돌손이 받치고 있는 바나힐 골든 브릿지' },
-      { url: miQuangImg, captionVi: 'Mì Quảng ếch Đà Nẵng đậm đà hương vị xứ Quảng', dish: 'Mì Quảng', captionEn: 'Authentic Da Nang Mi Quang turmeric noodles', captionKo: '다낭 전통 미꽝 국수와 바삭한 라이스페이퍼' },
+      { url: miQuangImg, captionVi: 'Mì Quảng ếch Đà Nẵng đậm đà hương vị xứ Quảng', captionEn: 'Authentic Da Nang Mi Quang turmeric noodles', captionKo: '다낭 전통 미꽝 국수와 바삭한 라이스페이퍼' },
       { url: mySonImg, captionVi: 'Danh thắng Ngũ Hành Sơn 5 ngọn núi kỳ vĩ ven biển Mỹ Khê', captionEn: 'Marble Mountains sacred caves and stone craftsmanship', captionKo: '오행산 동굴 사원과 대리석 조각 예술' },
     ],
     ticketPriceInfo: 'Vé Sun World Bà Nà Hills: 900.000 VNĐ/người lớn (bao gồm cáp treo 2 chiều và Cầu Vàng). Ngũ Hành Sơn: 40.000 VNĐ. Thang máy: 15.000 VNĐ. Công viên Châu Á Asia Park: Miễn phí vào cửa.',
