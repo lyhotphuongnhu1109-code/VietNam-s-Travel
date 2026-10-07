@@ -47,6 +47,9 @@ import {
   leHoiDuaGheImg,
   chamCultureDanceImg,
   hmongBatikCostumeImg,
+  thaiKhanPieuImg,
+  daoHeaddressImg,
+  tayDanTinhThenImg,
 } from '../data/ethnicData';
 import { HISTORIC_MONUMENTS } from '../data/travelData';
 import { HistoricMonument, Language } from '../types';
@@ -231,6 +234,26 @@ const ETHNIC_FESTIVAL_SIGNATURES: Record<string, { vi: string; en: string; highl
   ngai: { vi: 'Tết Thanh Minh & Lễ tạ ơn mùa màng, hát Sường cô giao duyên', en: 'Tomb Sweeping Festival, harvest thanksgiving rites & Suong Co love duets', highlightRitual: 'Hát Sường Cô giao duyên' },
 };
 
+// 4. Helper lấy hình ảnh xác thực cho từng phần: Trang phục, Kiến trúc, Lễ hội
+export const getEthnicCostumeImage = (group: EthnicGroupDetail): string => {
+  const customCostumeMap: Record<string, string> = {
+    thai: thaiKhanPieuImg,
+    dao: daoHeaddressImg,
+    hmong: hmongBatikCostumeImg,
+    cham: chamCultureDanceImg,
+    tay: tayDanTinhThenImg,
+  };
+  return customCostumeMap[group.id] || group.featureImageUrl || group.imageUrl;
+};
+
+export const getEthnicArchitectureImage = (group: EthnicGroupDetail): string => {
+  return group.architectureImageUrl || ETHNIC_ARCHITECTURE_IMAGES[group.id] || nhaSanTayBacImg;
+};
+
+export const getEthnicFestivalImage = (group: EthnicGroupDetail): string => {
+  return group.festivalImageUrl || ETHNIC_FESTIVAL_IMAGES[group.id] || leHoiCongChiengImg;
+};
+
 export const CultureAndHeritage: React.FC<CultureAndHeritageProps> = ({ currentLang }) => {
   const [activeTab, setActiveTab] = useState<'ethnic' | 'monuments'>('ethnic');
   const [selectedEthnic, setSelectedEthnic] = useState<EthnicGroupDetail>(ALL_54_ETHNIC_GROUPS[0]);
@@ -239,6 +262,11 @@ export const CultureAndHeritage: React.FC<CultureAndHeritageProps> = ({ currentL
   const [ethnicDisplayMode, setEthnicDisplayMode] = useState<'grid' | 'split'>('grid');
   const [modalImageMode, setModalImageMode] = useState<'characteristic' | 'portrait'>('characteristic');
   
+  // Tab filter inside modal: all (cả 3 phần), costume (trang phục), architecture (kiến trúc), festival (lễ hội)
+  const [modalActiveTab, setModalActiveTab] = useState<'all' | 'costume' | 'architecture' | 'festival'>('all');
+  // Photo zoom popup (lightbox khi bấm vào từng ảnh)
+  const [zoomedPhoto, setZoomedPhoto] = useState<{ url: string; title: string; subtitle: string } | null>(null);
+
   // 🌟 Image aspect toggles for visual exploration across 54 ethnic groups
   const [modalAspect, setModalAspect] = useState<'costume' | 'architecture' | 'festival'>('costume');
   const [splitViewAspect, setSplitViewAspect] = useState<'costume' | 'architecture' | 'festival'>('costume');
@@ -306,11 +334,17 @@ export const CultureAndHeritage: React.FC<CultureAndHeritageProps> = ({ currentL
 
   const handleInspectEthnic = (
     group: EthnicGroupDetail,
-    aspect?: 'costume' | 'architecture' | 'festival'
+    aspectOrTab?: 'all' | 'costume' | 'architecture' | 'festival'
   ) => {
     setSelectedEthnic(group);
     setZoomedEthnicImage(group);
-    setModalAspect(aspect || 'costume');
+    if (aspectOrTab === 'all' || !aspectOrTab) {
+      setModalActiveTab('all');
+      setModalAspect('costume');
+    } else {
+      setModalActiveTab(aspectOrTab);
+      setModalAspect(aspectOrTab);
+    }
   };
 
   return (
@@ -591,355 +625,71 @@ export const CultureAndHeritage: React.FC<CultureAndHeritageProps> = ({ currentL
                     </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                     {filteredEthnicGroups.map((group) => {
                       const globalIndex = ALL_54_ETHNIC_GROUPS.findIndex((g) => g.id === group.id) + 1;
-                      const signature = ETHNIC_COSTUME_SIGNATURES[group.id];
                       const koItem = KO_54_ETHNIC_GROUPS[group.id];
                       const displayName = currentLang === 'ko' && koItem ? koItem.nameKo : group.name;
                       const displayOtherNames = currentLang === 'ko' && koItem ? koItem.otherNamesKo : group.otherNames;
                       const displayRegion = currentLang === 'ko' && koItem ? koItem.regionKo : group.regionVi;
-                      const displayLinguisticGroup = currentLang === 'ko' && koItem ? koItem.linguisticGroupKo : group.linguisticGroupVi;
-                      const displayResidence = currentLang === 'ko' && koItem ? koItem.residenceKo : group.residence;
-                      const displayTags = currentLang === 'ko' && koItem ? koItem.characteristicTagsKo : (group.characteristicTags || []);
+                      const cardDisplayImg = getEthnicCostumeImage(group);
 
                       return (
                         <div
                           key={group.id}
-                          className="bg-white rounded-3xl border border-sky-100/90 overflow-hidden shadow-xs hover:shadow-xl hover:border-sky-300 transition-all flex flex-col justify-between group"
+                          onClick={() => handleInspectEthnic(group, 'all')}
+                          className="group relative rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-950 border border-stone-200/90 hover:border-amber-400 shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer flex flex-col aspect-[3/4]"
+                          title={
+                            currentLang === 'vi'
+                              ? `Nhấp xem thông tin & hình ảnh: Trang phục, Kiến trúc, Lễ hội của dân tộc ${displayName}`
+                              : currentLang === 'ko'
+                              ? `${displayName}의 전통 의상, 주거 건축, 민속 축제 사진 & 정보 보기`
+                              : `Click to view costume, architecture, and festivals of ${displayName}`
+                          }
                         >
-                          <div>
-                            {(() => {
-                              const activeAspect = cardImageAspects[group.id] || 'costume';
+                          {/* Authentic Ethnic Portrait & Traditional Attire Image */}
+                          <img
+                            src={cardDisplayImg}
+                            alt={displayName}
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+                          />
 
-                              const cardDisplayImg =
-                                activeAspect === 'architecture'
-                                  ? group.architectureImageUrl || ETHNIC_ARCHITECTURE_IMAGES[group.id] || nhaSanTayBacImg
-                                  : activeAspect === 'festival'
-                                  ? group.festivalImageUrl || ETHNIC_FESTIVAL_IMAGES[group.id] || leHoiCongChiengImg
-                                  : group.imageUrl;
-
-                              return (
-                                <>
-                                  {/* Card Image with badges, zoom, and aspect switcher */}
-                                  <div
-                                    onClick={() => handleInspectEthnic(group, activeAspect)}
-                                    className="relative aspect-[4/3] overflow-hidden bg-slate-950 cursor-pointer"
-                                  >
-                                    <img
-                                      src={cardDisplayImg}
-                                      alt={displayName}
-                                      referrerPolicy="no-referrer"
-                                      className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
-
-                                    {/* Number Badge & Region */}
-                                    <div className="absolute top-3 left-3 flex flex-wrap items-center gap-1.5 z-10">
-                                      <span className="px-2.5 py-1 rounded-md bg-sky-600 text-white text-[11px] font-black shadow-xs tracking-wider">
-                                        #{globalIndex < 10 ? `0${globalIndex}` : globalIndex}
-                                      </span>
-                                      <span className="px-2 py-0.8 rounded-md bg-black/60 backdrop-blur-xs text-amber-300 text-[10px] font-bold">
-                                        {displayRegion}
-                                      </span>
-                                      {activeAspect === 'architecture' && (
-                                        <span className="px-2 py-0.8 rounded-md bg-sky-600/90 text-white text-[10px] font-extrabold flex items-center gap-0.5 shadow-xs">
-                                          <Home className="w-3 h-3" />
-                                          <span>
-                                            {currentLang === 'vi'
-                                              ? 'Kiến trúc'
-                                              : currentLang === 'ko'
-                                              ? '주거 건축'
-                                              : 'Architecture'}
-                                          </span>
-                                        </span>
-                                      )}
-                                      {activeAspect === 'festival' && (
-                                        <span className="px-2 py-0.8 rounded-md bg-purple-600/90 text-white text-[10px] font-extrabold flex items-center gap-0.5 shadow-xs">
-                                          <Music className="w-3 h-3" />
-                                          <span>
-                                            {currentLang === 'vi'
-                                              ? 'Lễ hội'
-                                              : currentLang === 'ko'
-                                              ? '전통 축제'
-                                              : 'Festival'}
-                                          </span>
-                                        </span>
-                                      )}
-                                    </div>
-
-                                    {/* 3-Aspect View Switcher (Trang phục / Kiến trúc / Lễ hội) */}
-                                    <div className="absolute top-3 right-3 flex items-center gap-1 z-10">
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setCardImageAspects((prev) => ({ ...prev, [group.id]: 'costume' }));
-                                        }}
-                                        title={
-                                          currentLang === 'vi'
-                                            ? 'Xem ảnh trang phục'
-                                            : currentLang === 'ko'
-                                            ? '전통 의상 사진 보기'
-                                            : 'View costume image'
-                                        }
-                                        className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold cursor-pointer transition-all ${
-                                          activeAspect === 'costume'
-                                            ? 'bg-amber-400 text-slate-950 font-black shadow-xs'
-                                            : 'bg-black/60 text-slate-200 hover:bg-black/90'
-                                        }`}
-                                      >
-                                        👘
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setCardImageAspects((prev) => ({ ...prev, [group.id]: 'architecture' }));
-                                        }}
-                                        title={
-                                          currentLang === 'vi'
-                                            ? 'Xem ảnh kiến trúc nhà ở'
-                                            : currentLang === 'ko'
-                                            ? '주거 건축 사진 보기'
-                                            : 'View architecture image'
-                                        }
-                                        className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold cursor-pointer transition-all ${
-                                          activeAspect === 'architecture'
-                                            ? 'bg-sky-400 text-slate-950 font-black shadow-xs'
-                                            : 'bg-black/60 text-slate-200 hover:bg-black/90'
-                                        }`}
-                                      >
-                                        🏡
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setCardImageAspects((prev) => ({ ...prev, [group.id]: 'festival' }));
-                                        }}
-                                        title={
-                                          currentLang === 'vi'
-                                            ? 'Xem ảnh lễ hội truyền thống'
-                                            : currentLang === 'ko'
-                                            ? '전통 축제 사진 보기'
-                                            : 'View festival image'
-                                        }
-                                        className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold cursor-pointer transition-all ${
-                                          activeAspect === 'festival'
-                                            ? 'bg-purple-400 text-white font-black shadow-xs'
-                                            : 'bg-black/60 text-slate-200 hover:bg-black/90'
-                                        }`}
-                                      >
-                                        🎉
-                                      </button>
-                                    </div>
-
-                                    {/* Bottom text inside image */}
-                                    <div className="absolute bottom-3 left-3 right-3 text-white">
-                                      <h3 className="text-lg font-black leading-tight drop-shadow-sm">{displayName}</h3>
-                                      {displayOtherNames && (
-                                        <p className="text-[11px] text-amber-200 line-clamp-1 mt-0.5">
-                                          <span className="font-semibold">{displayOtherNames}</span>
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
-                                </>
-                              );
-                            })()}
-
-                            {/* Card Body */}
-                            <div className="p-4 space-y-3">
-                              {/* Linguistic Group */}
-                              <div className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-sky-500 shrink-0" />
-                                <p className="text-[11px] font-bold text-sky-700 truncate">
-                                  {displayLinguisticGroup}
-                                </p>
-                              </div>
-
-                              {/* Distinctive Characteristics Tags */}
-                              {displayTags.length > 0 && (
-                                <div className="flex flex-wrap gap-1">
-                                  {displayTags.slice(0, 2).map((tag, tIdx) => (
-                                    <span
-                                      key={tIdx}
-                                      className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200/70 text-[10px] font-bold flex items-center gap-1"
-                                    >
-                                      <span>✨</span>
-                                      <span className="truncate">{tag}</span>
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-
-                              {/* 3 Pillars of Distinctive Characteristics (Trang Phục - Kiến Trúc - Lễ Hội) */}
-                              <div className="space-y-2">
-                                {/* Pillar 1: Trang phục */}
-                                <div className="p-2.5 rounded-xl transition-all bg-amber-50/50 border border-amber-100/80">
-                                  <div className="flex items-center justify-between gap-1 mb-0.5">
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-900 flex items-center gap-1">
-                                      <Shirt className="w-3 h-3 text-amber-700 shrink-0" />
-                                      <span>
-                                        {currentLang === 'vi'
-                                          ? 'Trang phục đặc trưng:'
-                                          : currentLang === 'ko'
-                                          ? '고유 전통 의상:'
-                                          : 'Traditional attire:'}
-                                      </span>
-                                    </span>
-                                  </div>
-                                  <p className="text-[11px] text-slate-700 font-medium line-clamp-2 leading-snug">
-                                    {currentLang === 'vi'
-                                      ? signature?.vi || group.traditionalCostume
-                                      : currentLang === 'ko'
-                                      ? koItem?.costumeKo || signature?.en || group.traditionalCostume
-                                      : signature?.en || group.traditionalCostume}
-                                  </p>
-                                </div>
-
-                                {/* Pillar 2: Kiến trúc nhà ở với hình ảnh minh họa thực tế */}
-                                <div className="p-2.5 rounded-xl transition-all bg-sky-50/40 border border-sky-100/80">
-                                  <div className="flex items-center justify-between gap-1 mb-1">
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-sky-900 flex items-center gap-1">
-                                      <Home className="w-3 h-3 text-sky-700 shrink-0" />
-                                      <span>
-                                        {currentLang === 'vi'
-                                          ? 'Kiến trúc nhà ở:'
-                                          : currentLang === 'ko'
-                                          ? '주거 건축 양식:'
-                                          : 'Architecture:'}
-                                      </span>
-                                    </span>
-                                  </div>
-                                  <div className="flex items-start gap-2">
-                                    <p className="flex-1 text-[11px] text-slate-700 font-medium line-clamp-2 leading-snug">
-                                      {currentLang === 'vi'
-                                        ? ETHNIC_ARCHITECTURE_SIGNATURES[group.id]?.vi || group.architecture
-                                        : currentLang === 'ko'
-                                        ? koItem?.architectureKo || ETHNIC_ARCHITECTURE_SIGNATURES[group.id]?.en || group.architecture
-                                        : ETHNIC_ARCHITECTURE_SIGNATURES[group.id]?.en || group.architecture}
-                                    </p>
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleInspectEthnic(group, 'architecture');
-                                      }}
-                                      title={
-                                        currentLang === 'vi'
-                                          ? 'Bấm để soi ảnh kiến trúc'
-                                          : currentLang === 'ko'
-                                          ? '주거 건축 사진 확대'
-                                          : 'Click to inspect architecture image'
-                                      }
-                                      className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-sky-200 hover:border-sky-400 relative group/arch cursor-pointer shadow-2xs hover:scale-105 transition-transform"
-                                    >
-                                      <img
-                                        src={group.architectureImageUrl || ETHNIC_ARCHITECTURE_IMAGES[group.id] || nhaSanTayBacImg}
-                                        alt="Kiến trúc"
-                                        referrerPolicy="no-referrer"
-                                        className="w-full h-full object-cover"
-                                      />
-                                      <div className="absolute inset-0 bg-black/20 group-hover/arch:bg-transparent flex items-center justify-center transition-colors">
-                                        <Maximize2 className="w-2.5 h-2.5 text-white drop-shadow-xs" />
-                                      </div>
-                                    </button>
-                                  </div>
-                                </div>
-
-                                {/* Pillar 3: Lễ hội & Phong tục với hình ảnh minh họa thực tế */}
-                                <div className="p-2.5 rounded-xl transition-all bg-purple-50/40 border border-purple-100/80">
-                                  <div className="flex items-center justify-between gap-1 mb-1">
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-purple-900 flex items-center gap-1">
-                                      <Music className="w-3 h-3 text-purple-700 shrink-0" />
-                                      <span>
-                                        {currentLang === 'vi'
-                                          ? 'Lễ hội tiêu biểu:'
-                                          : currentLang === 'ko'
-                                          ? '대표 민속 축제:'
-                                          : 'Festivals:'}
-                                      </span>
-                                    </span>
-                                  </div>
-                                  <div className="flex items-start gap-2">
-                                    <p className="flex-1 text-[11px] text-slate-700 font-medium line-clamp-2 leading-snug">
-                                      {currentLang === 'vi'
-                                        ? ETHNIC_FESTIVAL_SIGNATURES[group.id]?.vi || group.festivals
-                                        : currentLang === 'ko'
-                                        ? koItem?.festivalKo || ETHNIC_FESTIVAL_SIGNATURES[group.id]?.en || group.festivals
-                                        : ETHNIC_FESTIVAL_SIGNATURES[group.id]?.en || group.festivals}
-                                    </p>
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleInspectEthnic(group, 'festival');
-                                      }}
-                                      title={
-                                        currentLang === 'vi'
-                                          ? 'Bấm để soi ảnh lễ hội'
-                                          : currentLang === 'ko'
-                                          ? '전통 축제 사진 확대'
-                                          : 'Click to inspect festival image'
-                                      }
-                                      className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-purple-200 hover:border-purple-400 relative group/fest cursor-pointer shadow-2xs hover:scale-105 transition-transform"
-                                    >
-                                      <img
-                                        src={group.festivalImageUrl || ETHNIC_FESTIVAL_IMAGES[group.id] || leHoiCongChiengImg}
-                                        alt="Lễ hội"
-                                        referrerPolicy="no-referrer"
-                                        className="w-full h-full object-cover"
-                                      />
-                                      <div className="absolute inset-0 bg-black/20 group-hover/fest:bg-transparent flex items-center justify-center transition-colors">
-                                        <Maximize2 className="w-2.5 h-2.5 text-white drop-shadow-xs" />
-                                      </div>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Primary Residence */}
-                              <div className="text-[11px] text-slate-500 flex items-start gap-1.5 pt-1">
-                                <span className="shrink-0 mt-0.5">📍</span>
-                                <span className="line-clamp-2 leading-relaxed">{displayResidence}</span>
-                              </div>
-                            </div>
+                          {/* Top Badges */}
+                          <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
+                            <span className="px-2.5 py-1 rounded-lg bg-sky-600/90 backdrop-blur-xs text-white text-[11px] font-black shadow-xs tracking-wider">
+                              #{globalIndex < 10 ? `0${globalIndex}` : globalIndex}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-xs text-amber-300 text-[10px] font-bold">
+                              {displayRegion}
+                            </span>
                           </div>
 
-                          {/* Card Footer Actions */}
-                          <div className="p-4 pt-0 border-t border-slate-100/70 flex items-center justify-between gap-2 mt-2">
-                            <button
-                              onClick={() => {
-                                setSelectedEthnic(group);
-                                setEthnicDisplayMode('split');
-                              }}
-                              className="text-xs text-sky-600 font-bold hover:text-sky-800 transition-colors inline-flex items-center gap-1 cursor-pointer py-1"
-                            >
-                              <Info className="w-3.5 h-3.5" />
-                              <span>
-                                {currentLang === 'vi'
-                                  ? 'Chi tiết'
-                                  : currentLang === 'ko'
-                                  ? '상세보기'
-                                  : 'Details'}
-                              </span>
-                            </button>
+                          {/* Gradient shadow at bottom to make ethnic name pop */}
+                          <div className="absolute inset-x-0 bottom-0 h-32 sm:h-36 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent pointer-events-none" />
 
-                            <button
-                              onClick={() => handleInspectEthnic(group)}
-                              className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-500 text-amber-900 hover:text-slate-950 transition-all text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer border border-amber-200"
-                            >
-                              <Eye className="w-3.5 h-3.5 text-amber-700" />
-                              <span>
+                          {/* Bottom Ethnic Name & Quick Inspect Cue */}
+                          <div className="absolute inset-x-0 bottom-0 p-3.5 sm:p-4 z-10 text-white flex flex-col justify-end">
+                            <h3 className="text-base sm:text-lg font-black text-white group-hover:text-amber-300 transition-colors drop-shadow-md leading-tight">
+                              {displayName}
+                            </h3>
+                            {displayOtherNames && (
+                              <p className="text-[11px] text-amber-200/90 line-clamp-1 mt-0.5 font-medium">
+                                {displayOtherNames}
+                              </p>
+                            )}
+
+                            {/* Clean cue: Trang phục • Kiến trúc • Lễ hội */}
+                            <div className="mt-2 pt-2 border-t border-white/15 flex items-center justify-between text-[11px] text-amber-300 font-semibold opacity-90 group-hover:opacity-100 transition-opacity">
+                              <span className="truncate">
                                 {currentLang === 'vi'
-                                  ? 'Soi Nét Đặc Trưng'
+                                  ? 'Trang phục • Kiến trúc • Lễ hội'
                                   : currentLang === 'ko'
-                                  ? '특징 자세히 보기'
-                                  : 'Inspect Features'}
+                                  ? '의상 • 주거 • 축제 보기'
+                                  : 'Costume • Architecture • Festivals'}
                               </span>
-                            </button>
+                              <ChevronRight className="w-3.5 h-3.5 shrink-0 group-hover:translate-x-1 transition-transform text-amber-400" />
+                            </div>
                           </div>
                         </div>
                       );
@@ -1275,6 +1025,35 @@ export const CultureAndHeritage: React.FC<CultureAndHeritageProps> = ({ currentL
                               <p className="text-slate-700 leading-relaxed text-xs">
                                 {selectedDisplayCostume}
                               </p>
+
+                              {/* Hình ảnh trang phục truyền thống thực tế */}
+                              <div
+                                onClick={() => handleInspectEthnic(selectedEthnic, 'costume')}
+                                className="relative rounded-xl overflow-hidden aspect-[21/9] sm:aspect-[24/9] border border-amber-200/90 group/costumeImg cursor-pointer shadow-xs"
+                              >
+                                <img
+                                  src={getEthnicCostumeImage(selectedEthnic)}
+                                  alt="Trang phục truyền thống"
+                                  referrerPolicy="no-referrer"
+                                  className="w-full h-full object-cover group-hover/costumeImg:scale-105 transition-transform duration-500"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end justify-between p-2.5">
+                                  <span className="text-[11px] font-bold text-white flex items-center gap-1">
+                                    <Shirt className="w-3.5 h-3.5 text-amber-300" />
+                                    <span>
+                                      {currentLang === 'vi'
+                                        ? 'Trang phục cổ truyền'
+                                        : currentLang === 'ko'
+                                        ? '전통 복식'
+                                        : 'Traditional Costume'}
+                                    </span>
+                                  </span>
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500 text-slate-950 flex items-center gap-1 shadow-xs group-hover/costumeImg:bg-amber-400">
+                                    <Maximize2 className="w-2.5 h-2.5" />
+                                    <span>{currentLang === 'vi' ? 'Xem ảnh lớn' : currentLang === 'ko' ? '사진 확대' : 'Inspect'}</span>
+                                  </span>
+                                </div>
+                              </div>
                             </div>
 
                             {/* Pillar 2: Kiến Trúc Nhà Ở kèm Hình Ảnh Minh Họa Thực Tế */}
@@ -1523,11 +1302,11 @@ export const CultureAndHeritage: React.FC<CultureAndHeritageProps> = ({ currentL
               onClick={() => setZoomedEthnicImage(null)}
             >
               <div
-                className="bg-slate-900 border border-slate-700 rounded-3xl overflow-hidden max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl relative text-white"
+                className="bg-slate-900 border border-slate-700/80 rounded-3xl overflow-hidden max-w-5xl w-full max-h-[94vh] flex flex-col shadow-2xl relative text-white"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Modal Header */}
-                <div className="p-4 sm:p-5 flex items-center justify-between border-b border-slate-800 shrink-0 gap-3">
+                <div className="p-4 sm:p-5 flex items-center justify-between border-b border-slate-800 shrink-0 gap-3 bg-slate-950/70">
                   <div className="flex items-center gap-2 flex-wrap min-w-0">
                     <span className="px-2.5 py-1 rounded-md bg-amber-500 text-slate-950 text-xs font-black shadow-xs">
                       #{ALL_54_ETHNIC_GROUPS.findIndex((g) => g.id === zoomedEthnicImage.id) + 1} / 54
@@ -1538,330 +1317,444 @@ export const CultureAndHeritage: React.FC<CultureAndHeritageProps> = ({ currentL
                     <span className="px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 text-xs font-semibold">
                       {modalDisplayRegion}
                     </span>
-                    <h4 className="text-lg font-black text-white ml-1 truncate">{modalDisplayName}</h4>
+                    <h4 className="text-lg sm:text-xl font-black text-white ml-1 truncate">
+                      {modalDisplayName}
+                    </h4>
+                    {modalDisplayOtherNames && (
+                      <span className="text-xs text-amber-200/80 font-medium hidden md:inline truncate">
+                        ({modalDisplayOtherNames})
+                      </span>
+                    )}
                   </div>
 
-                  {/* 3-Aspect View Switcher (Trang phục / Kiến trúc / Lễ hội) */}
-                  <div className="hidden sm:flex items-center gap-1 bg-slate-800 p-1 rounded-xl border border-slate-700 shrink-0">
-                    <button
-                      onClick={() => setModalAspect('costume')}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                        modalAspect === 'costume'
-                          ? 'bg-amber-500 text-slate-950 font-black shadow-xs'
-                          : 'text-slate-300 hover:text-white'
-                      }`}
-                    >
-                      <span>👘</span>
-                      <span>{currentLang === 'vi' ? 'Trang Phục' : currentLang === 'ko' ? '전통 의상' : 'Costume'}</span>
-                    </button>
-                    <button
-                      onClick={() => setModalAspect('architecture')}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                        modalAspect === 'architecture'
-                          ? 'bg-sky-500 text-white font-black shadow-xs'
-                          : 'text-slate-300 hover:text-white'
-                      }`}
-                    >
-                      <span>🏡</span>
-                      <span>{currentLang === 'vi' ? 'Kiến Trúc Nhà Ở' : currentLang === 'ko' ? '주거 건축' : 'Architecture'}</span>
-                    </button>
-                    <button
-                      onClick={() => setModalAspect('festival')}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                        modalAspect === 'festival'
-                          ? 'bg-purple-500 text-white font-black shadow-xs'
-                          : 'text-slate-300 hover:text-white'
-                      }`}
-                    >
-                      <span>🎉</span>
-                      <span>{currentLang === 'vi' ? 'Lễ Hội & Tín Ngưỡng' : currentLang === 'ko' ? '축제 & 신앙' : 'Festivals'}</span>
-                    </button>
-                  </div>
-
-                  <button
-                    onClick={() => setZoomedEthnicImage(null)}
-                    className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
-                    title="Đóng (Close)"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {/* Mobile View Switcher */}
-                <div className="sm:hidden px-3 py-2 bg-slate-950 border-b border-slate-800 flex items-center justify-center gap-1">
-                  <button
-                    onClick={() => setModalAspect('costume')}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold ${
-                      modalAspect === 'costume' ? 'bg-amber-500 text-slate-950' : 'text-slate-300'
-                    }`}
-                  >
-                    👘 {currentLang === 'vi' ? 'Trang Phục' : currentLang === 'ko' ? '전통 의상' : 'Costume'}
-                  </button>
-                  <button
-                    onClick={() => setModalAspect('architecture')}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold ${
-                      modalAspect === 'architecture' ? 'bg-sky-500 text-white' : 'text-slate-300'
-                    }`}
-                  >
-                    🏡 {currentLang === 'vi' ? 'Kiến Trúc' : currentLang === 'ko' ? '주거 건축' : 'Architecture'}
-                  </button>
-                  <button
-                    onClick={() => setModalAspect('festival')}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold ${
-                      modalAspect === 'festival' ? 'bg-purple-500 text-white' : 'text-slate-300'
-                    }`}
-                  >
-                    🎉 {currentLang === 'vi' ? 'Lễ Hội' : currentLang === 'ko' ? '전통 축제' : 'Festivals'}
-                  </button>
-                </div>
-
-                {/* Scrollable Container for Image & Details */}
-                <div className="overflow-y-auto custom-scrollbar flex-1">
-                  {/* Modal Image with Prev / Next Navigation */}
-                  <div className="relative aspect-[16/10] sm:aspect-[16/9] max-h-[48vh] bg-black flex items-center justify-center overflow-hidden group select-none">
-                    <img
-                      src={
-                        modalAspect === 'architecture'
-                          ? zoomedEthnicImage.architectureImageUrl || ETHNIC_ARCHITECTURE_IMAGES[zoomedEthnicImage.id] || nhaSanTayBacImg
-                          : modalAspect === 'festival'
-                          ? zoomedEthnicImage.festivalImageUrl || ETHNIC_FESTIVAL_IMAGES[zoomedEthnicImage.id] || leHoiCongChiengImg
-                          : modalImageMode === 'portrait' && zoomedEthnicImage.featureImageUrl
-                          ? zoomedEthnicImage.featureImageUrl
-                          : zoomedEthnicImage.imageUrl
-                      }
-                      alt={modalDisplayName}
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-contain"
-                    />
-
-                    {/* Prev Button */}
+                  {/* Header Actions (Prev, Next, Audio, Close) */}
+                  <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       onClick={handlePrevEthnicModal}
-                      title={currentLang === 'vi' ? 'Dân tộc trước' : currentLang === 'ko' ? '이전 민족' : 'Previous ethnic group'}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/60 hover:bg-amber-500 hover:text-slate-950 text-white transition-all cursor-pointer shadow-lg backdrop-blur-xs z-10"
+                      title={currentLang === 'vi' ? 'Dân tộc trước' : currentLang === 'ko' ? '이전 민족' : 'Previous'}
+                      className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white transition-all cursor-pointer border border-slate-700"
                     >
-                      <ChevronLeft className="w-5 h-5" />
+                      <ChevronLeft className="w-4 h-4" />
                     </button>
-
-                    {/* Next Button */}
                     <button
                       onClick={handleNextEthnicModal}
-                      title={currentLang === 'vi' ? 'Dân tộc tiếp theo' : currentLang === 'ko' ? '다음 민족' : 'Next ethnic group'}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/60 hover:bg-amber-500 hover:text-slate-950 text-white transition-all cursor-pointer shadow-lg backdrop-blur-xs z-10"
+                      title={currentLang === 'vi' ? 'Dân tộc tiếp theo' : currentLang === 'ko' ? '다음 민족' : 'Next'}
+                      className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white transition-all cursor-pointer border border-slate-700"
                     >
-                      <ChevronRight className="w-5 h-5" />
+                      <ChevronRight className="w-4 h-4" />
                     </button>
-
-                    {/* Image overlay badge */}
-                    <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between pointer-events-none">
-                      {modalAspect === 'architecture' ? (
-                        <span className="inline-block px-2.5 py-1 rounded bg-sky-950/80 backdrop-blur-xs text-sky-200 text-xs font-bold border border-sky-600/40">
-                          🏡 {currentLang === 'vi' ? 'Kiến trúc nhà ở: ' : currentLang === 'ko' ? '주거 건축 양식: ' : 'Dwelling architecture: '}
-                          {currentLang === 'ko'
-                            ? (koModal?.architectureKo || '전통 가옥')
-                            : (ETHNIC_ARCHITECTURE_SIGNATURES[zoomedEthnicImage.id]?.type || 'Nếp nhà truyền thống')}
-                        </span>
-                      ) : modalAspect === 'festival' ? (
-                        <span className="inline-block px-2.5 py-1 rounded bg-purple-950/80 backdrop-blur-xs text-purple-200 text-xs font-bold border border-purple-600/40">
-                          🎉 {currentLang === 'vi' ? 'Lễ hội & Tín ngưỡng: ' : currentLang === 'ko' ? '대표 축제 및 신앙: ' : 'Living festival: '}
-                          {currentLang === 'ko'
-                            ? (koModal?.festivalKo || '전통 축제')
-                            : (ETHNIC_FESTIVAL_SIGNATURES[zoomedEthnicImage.id]?.highlightRitual || 'Lễ hội truyền thống')}
-                        </span>
-                      ) : (
-                        <span className="inline-block px-2.5 py-1 rounded bg-black/70 backdrop-blur-xs text-amber-300 text-xs font-semibold">
-                          👘 {currentLang === 'vi' ? 'Trang phục & Bản sắc: ' : currentLang === 'ko' ? '전통 의상 및 특징: ' : 'Attire: '}
-                          {modalDisplayOtherNames || modalDisplayName}
-                        </span>
-                      )}
-
-                      <span className="hidden sm:inline-block px-2 py-0.5 rounded bg-black/70 backdrop-blur-xs text-slate-300 text-[10px]">
-                        {modalAspect === 'architecture'
-                          ? (currentLang === 'vi' ? 'Ảnh Kiến Trúc Nhà Ở' : currentLang === 'ko' ? '주거 건축 사진' : 'Dwelling Architecture Photo')
-                          : modalAspect === 'festival'
-                          ? (currentLang === 'vi' ? 'Ảnh Lễ Hội & Nghi Lễ' : currentLang === 'ko' ? '축제 & 의식 사진' : 'Festivals & Rituals Photo')
-                          : (currentLang === 'vi' ? 'Ảnh Trang Phục Truyền Thống' : currentLang === 'ko' ? '전통 복식 사진' : 'Traditional Costume Photo')}
+                    <button
+                      onClick={() => {
+                        const narrationText =
+                          currentLang === 'ko' && koModal
+                            ? `${koModal.nameKo}. 전통 복식: ${koModal.costumeKo}. 주거 건축: ${koModal.architectureKo}. 대표 축제: ${koModal.festivalKo}. 문화적 정체성: ${koModal.culturalHighlightKo}`
+                            : `Dân tộc ${zoomedEthnicImage.name}. 
+                              Phần 1: Trang phục đặc trưng: ${ETHNIC_COSTUME_SIGNATURES[zoomedEthnicImage.id]?.vi || zoomedEthnicImage.traditionalCostume}. ${zoomedEthnicImage.traditionalCostume}. 
+                              Phần 2: Kiến trúc nhà ở: ${ETHNIC_ARCHITECTURE_SIGNATURES[zoomedEthnicImage.id]?.type || ''}, ${ETHNIC_ARCHITECTURE_SIGNATURES[zoomedEthnicImage.id]?.vi || zoomedEthnicImage.architecture}. ${zoomedEthnicImage.architecture}. 
+                              Phần 3: Lễ hội truyền thống: ${ETHNIC_FESTIVAL_SIGNATURES[zoomedEthnicImage.id]?.highlightRitual || ''}, ${ETHNIC_FESTIVAL_SIGNATURES[zoomedEthnicImage.id]?.vi || zoomedEthnicImage.festivals}. ${zoomedEthnicImage.festivals}`;
+                        playVoiceGuide(narrationText, currentLang);
+                      }}
+                      title={currentLang === 'vi' ? 'Nghe thuyết minh đặc trưng' : currentLang === 'ko' ? '오디오 해설 듣기' : 'Listen Narration'}
+                      className="p-2 sm:px-3 sm:py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
+                    >
+                      <Volume2 className="w-4 h-4" />
+                      <span className="hidden sm:inline">
+                        {currentLang === 'vi' ? 'Thuyết minh' : currentLang === 'ko' ? '음성 해설' : 'Audio'}
                       </span>
-                    </div>
+                    </button>
+                    <button
+                      onClick={() => setZoomedEthnicImage(null)}
+                      className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                      title="Đóng (Close)"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
                   </div>
+                </div>
 
-                  {/* Modal Body: Characteristics & Living Culture */}
-                  <div className="p-5 sm:p-6 bg-slate-900/95 space-y-4">
-                    {/* Characteristic Tags Chips */}
-                    {zoomedEthnicImage.characteristicTags && zoomedEthnicImage.characteristicTags.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-1.5 pb-1">
-                        <span className="text-xs font-bold text-amber-400 mr-1 flex items-center gap-1">
-                          <Sparkles className="w-3.5 h-3.5" />
-                          {currentLang === 'vi' ? 'Dấu ấn đặc trưng:' : currentLang === 'ko' ? '주요 특징:' : 'Key features:'}
+                {/* Tab Switcher for the 3 Cultural Parts */}
+                <div className="px-4 sm:px-6 py-2.5 bg-slate-950 border-b border-slate-800 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+                  <span className="text-xs font-bold text-slate-400 mr-2 shrink-0 hidden sm:inline">
+                    {currentLang === 'vi' ? 'Xem các phần:' : currentLang === 'ko' ? '탐색 분류:' : 'Sections:'}
+                  </span>
+                  <button
+                    onClick={() => setModalActiveTab('all')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                      modalActiveTab === 'all'
+                        ? 'bg-white text-slate-950 font-black shadow-xs'
+                        : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <span>✨</span>
+                    <span>{currentLang === 'vi' ? 'Cả 3 Phần Bản Sắc' : currentLang === 'ko' ? '3대 영역 전체' : 'All 3 Sections'}</span>
+                  </button>
+                  <button
+                    onClick={() => setModalActiveTab('costume')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                      modalActiveTab === 'costume'
+                        ? 'bg-amber-500 text-slate-950 font-black shadow-xs'
+                        : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <span>👘</span>
+                    <span>{currentLang === 'vi' ? '1. Trang Phục Đặc Trưng' : currentLang === 'ko' ? '1. 전통 복식' : '1. Costume'}</span>
+                  </button>
+                  <button
+                    onClick={() => setModalActiveTab('architecture')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                      modalActiveTab === 'architecture'
+                        ? 'bg-sky-500 text-white font-black shadow-xs'
+                        : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <span>🏡</span>
+                    <span>{currentLang === 'vi' ? '2. Kiến Trúc Nhà Ở' : currentLang === 'ko' ? '2. 주거 건축' : '2. Architecture'}</span>
+                  </button>
+                  <button
+                    onClick={() => setModalActiveTab('festival')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                      modalActiveTab === 'festival'
+                        ? 'bg-purple-500 text-white font-black shadow-xs'
+                        : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <span>🎉</span>
+                    <span>{currentLang === 'vi' ? '3. Lễ Hội & Phong Tục' : currentLang === 'ko' ? '3. 전통 축제' : '3. Festivals'}</span>
+                  </button>
+                </div>
+
+                {/* Modal Scrollable Body */}
+                <div className="overflow-y-auto custom-scrollbar flex-1 p-4 sm:p-6 space-y-6 bg-slate-900">
+                  {/* Characteristic Tags Chips */}
+                  {zoomedEthnicImage.characteristicTags && zoomedEthnicImage.characteristicTags.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5 p-3 rounded-2xl bg-slate-950/60 border border-slate-800">
+                      <span className="text-xs font-bold text-amber-400 mr-1 flex items-center gap-1">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        {currentLang === 'vi' ? 'Dấu ấn đặc trưng:' : currentLang === 'ko' ? '주요 특징:' : 'Key features:'}
+                      </span>
+                      {zoomedEthnicImage.characteristicTags.map((tag, tIdx) => (
+                        <span
+                          key={tIdx}
+                          className="px-2.5 py-0.8 rounded-lg bg-amber-400/15 text-amber-300 border border-amber-400/30 text-xs font-bold"
+                        >
+                          ✨ {tag}
                         </span>
-                        {zoomedEthnicImage.characteristicTags.map((tag, tIdx) => (
-                          <span
-                            key={tIdx}
-                            className="px-2.5 py-1 rounded-lg bg-amber-400/15 text-amber-300 border border-amber-400/30 text-xs font-bold"
+                      ))}
+                    </div>
+                  )}
+
+                  {/* ===================== PHẦN 1: TRANG PHỤC ĐẶC TRƯNG ===================== */}
+                  {(modalActiveTab === 'all' || modalActiveTab === 'costume') && (() => {
+                    const costumeImg = getEthnicCostumeImage(zoomedEthnicImage);
+                    return (
+                      <div className="rounded-3xl bg-slate-950 border border-amber-500/40 p-4 sm:p-6 shadow-xl space-y-4">
+                        <div className="flex items-center justify-between border-b border-amber-500/20 pb-3">
+                          <h5 className="text-base sm:text-lg font-black text-amber-300 flex items-center gap-2">
+                            <span className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400">
+                              <Shirt className="w-5 h-5" />
+                            </span>
+                            <span>
+                              {currentLang === 'vi'
+                                ? '1. Trang Phục Đặc Trưng Độc Bản'
+                                : currentLang === 'ko'
+                                ? '1. 고유 전통 의상 & 직조 문양'
+                                : '1. Traditional Costume & Attire'}
+                            </span>
+                          </h5>
+                          <span className="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold">
+                            👘 {currentLang === 'vi' ? 'Có ảnh trang phục' : currentLang === 'ko' ? '의상 사진 포함' : 'With photo'}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                          {/* Dedicated Costume Image */}
+                          <div
+                            onClick={() =>
+                              setZoomedPhoto({
+                                url: costumeImg,
+                                title: `${modalDisplayName} - Trang Phục Đặc Trưng`,
+                                subtitle: modalSignatureCostume,
+                              })
+                            }
+                            className="lg:col-span-5 relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-900 border border-amber-500/30 group/cImg cursor-pointer shadow-md"
                           >
-                            ✨ {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                            <img
+                              src={costumeImg}
+                              alt={`${modalDisplayName} - Trang phục`}
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover group-hover/cImg:scale-106 transition-transform duration-500"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end justify-between p-3">
+                              <span className="text-[11px] font-bold text-amber-200 flex items-center gap-1 bg-black/60 px-2 py-1 rounded-md backdrop-blur-xs">
+                                <Shirt className="w-3.5 h-3.5 text-amber-400" />
+                                <span>{currentLang === 'vi' ? 'Ảnh trang phục' : currentLang === 'ko' ? '의상 사진' : 'Costume photo'}</span>
+                              </span>
+                              <span className="text-[10px] font-black px-2 py-1 rounded-md bg-amber-500 text-slate-950 flex items-center gap-1 shadow-xs group-hover/cImg:bg-amber-400">
+                                <Maximize2 className="w-3 h-3" />
+                                <span>{currentLang === 'vi' ? 'Phóng to' : currentLang === 'ko' ? '확대' : 'Zoom'}</span>
+                              </span>
+                            </div>
+                          </div>
 
-                    {/* Costume Signature Banner */}
-                    {(ETHNIC_COSTUME_SIGNATURES[zoomedEthnicImage.id] || koModal) && (
-                      <div className="p-3.5 rounded-2xl bg-amber-950/40 border border-amber-800/60">
-                        <span className="text-xs font-bold text-amber-400 block mb-0.5">
-                          👘 {currentLang === 'vi' ? 'Dấu ấn trang phục độc bản:' : currentLang === 'ko' ? '전통 복식 고유 시그니처:' : 'Signature Attire:'}
-                        </span>
-                        <p className="text-xs text-amber-100 font-medium leading-relaxed">
-                          {modalSignatureCostume}
-                        </p>
-                      </div>
-                    )}
+                          {/* Dedicated Costume Details */}
+                          <div className="lg:col-span-7 space-y-3">
+                            <div className="p-3.5 rounded-2xl bg-amber-950/30 border border-amber-700/50">
+                              <span className="text-xs font-bold text-amber-400 block mb-1">
+                                ✨ {currentLang === 'vi' ? 'Nét độc bản nhận diện:' : currentLang === 'ko' ? '고유 시그니처 특징:' : 'Signature Accent:'}
+                              </span>
+                              <p className="text-sm font-bold text-amber-200 leading-snug">
+                                {modalSignatureCostume}
+                              </p>
+                            </div>
 
-                    {/* 3 Pillars of Distinctive Culture */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      {/* Pillar 1: Costume */}
-                      <div
-                        onClick={() => setModalAspect('costume')}
-                        className={`p-3.5 rounded-2xl border space-y-2 cursor-pointer transition-all ${
-                          modalAspect === 'costume'
-                            ? 'bg-amber-950/40 border-amber-400 ring-2 ring-amber-400/30'
-                            : 'bg-slate-800/80 border-slate-700 hover:border-amber-400/60'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between gap-1 text-amber-400 text-xs font-bold">
-                          <span className="flex items-center gap-1.5">
-                            <Shirt className="w-4 h-4 text-amber-400 shrink-0" />
-                            <span>{currentLang === 'vi' ? 'Trang Phục & Họa Tiết' : currentLang === 'ko' ? '복식 & 직조 문양' : 'Costume & Brocade'}</span>
-                          </span>
-                          {modalAspect === 'costume' && (
-                            <span className="px-1.5 py-0.2 rounded bg-amber-400 text-slate-950 text-[9px] font-black">
-                              {currentLang === 'vi' ? 'Đang soi ảnh' : currentLang === 'ko' ? '확대 보기 중' : 'Viewing'}
+                            <div>
+                              <span className="text-xs font-bold text-slate-300 block mb-1.5 uppercase tracking-wider">
+                                📖 {currentLang === 'vi' ? 'Thông tin chi tiết về trang phục & họa tiết:' : currentLang === 'ko' ? '의상 상세 정보 & 직조 기법:' : 'Costume & Brocade Details:'}
+                              </span>
+                              <p className="text-slate-200 text-sm leading-relaxed whitespace-pre-line bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+                                {modalDisplayCostume}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* ===================== PHẦN 2: KIẾN TRÚC NHÀ Ở ===================== */}
+                  {(modalActiveTab === 'all' || modalActiveTab === 'architecture') && (() => {
+                    const archImg = getEthnicArchitectureImage(zoomedEthnicImage);
+                    const archType = ETHNIC_ARCHITECTURE_SIGNATURES[zoomedEthnicImage.id]?.type;
+                    return (
+                      <div className="rounded-3xl bg-slate-950 border border-sky-500/40 p-4 sm:p-6 shadow-xl space-y-4">
+                        <div className="flex items-center justify-between border-b border-sky-500/20 pb-3">
+                          <h5 className="text-base sm:text-lg font-black text-sky-300 flex items-center gap-2">
+                            <span className="p-1.5 rounded-lg bg-sky-500/20 text-sky-400">
+                              <Home className="w-5 h-5" />
+                            </span>
+                            <span>
+                              {currentLang === 'vi'
+                                ? '2. Kiến Trúc Nhà Ở & Không Gian Sống'
+                                : currentLang === 'ko'
+                                ? '2. 주거 건축 & 전통 가옥 양식'
+                                : '2. Traditional Architecture & Dwellings'}
+                            </span>
+                          </h5>
+                          {archType && (
+                            <span className="px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/40 text-xs font-bold">
+                              🏡 {currentLang === 'ko' && koModal?.architectureKo ? '전통 가옥' : archType}
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] font-bold text-amber-300 leading-snug">
-                          ✨ {modalSignatureCostume}
-                        </p>
-                        <p className="text-xs text-slate-300 leading-relaxed">
-                          {modalDisplayCostume}
-                        </p>
-                      </div>
 
-                      {/* Pillar 2: Architecture */}
-                      <div
-                        onClick={() => setModalAspect('architecture')}
-                        className={`p-3.5 rounded-2xl border space-y-2 cursor-pointer transition-all ${
-                          modalAspect === 'architecture'
-                            ? 'bg-sky-950/40 border-sky-400 ring-2 ring-sky-400/30'
-                            : 'bg-slate-800/80 border-slate-700 hover:border-sky-400/60'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between gap-1 text-sky-400 text-xs font-bold">
-                          <span className="flex items-center gap-1.5">
-                            <Home className="w-4 h-4 text-sky-400 shrink-0" />
-                            <span>{currentLang === 'vi' ? 'Kiến Trúc & Nếp Nhà' : currentLang === 'ko' ? '건축 & 전통 주택' : 'Architecture & Living'}</span>
-                          </span>
-                          <span className="px-1.5 py-0.2 rounded text-[10px] bg-sky-950 text-sky-300 border border-sky-800 font-semibold truncate max-w-[120px]">
-                            {currentLang === 'ko'
-                              ? (koModal?.architectureKo || '전통 가옥')
-                              : (ETHNIC_ARCHITECTURE_SIGNATURES[zoomedEthnicImage.id]?.type || 'Nếp nhà')}
-                          </span>
-                        </div>
-                        <p className="text-[11px] font-bold text-sky-300 leading-snug">
-                          🏡 {modalSignatureArch}
-                        </p>
-                        <p className="text-xs text-slate-300 leading-relaxed">
-                          {modalDisplayArchitecture}
-                        </p>
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                          {/* Dedicated Architecture Image */}
+                          <div
+                            onClick={() =>
+                              setZoomedPhoto({
+                                url: archImg,
+                                title: `${modalDisplayName} - Kiến Trúc Nhà Ở`,
+                                subtitle: modalSignatureArch,
+                              })
+                            }
+                            className="lg:col-span-5 relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-900 border border-sky-500/30 group/aImg cursor-pointer shadow-md"
+                          >
+                            <img
+                              src={archImg}
+                              alt={`${modalDisplayName} - Kiến trúc nhà ở`}
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover group-hover/aImg:scale-106 transition-transform duration-500"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end justify-between p-3">
+                              <span className="text-[11px] font-bold text-sky-200 flex items-center gap-1 bg-black/60 px-2 py-1 rounded-md backdrop-blur-xs">
+                                <Home className="w-3.5 h-3.5 text-sky-400" />
+                                <span>{currentLang === 'vi' ? 'Ảnh kiến trúc' : currentLang === 'ko' ? '건축 사진' : 'Architecture photo'}</span>
+                              </span>
+                              <span className="text-[10px] font-black px-2 py-1 rounded-md bg-sky-500 text-white flex items-center gap-1 shadow-xs group-hover/aImg:bg-sky-400">
+                                <Maximize2 className="w-3 h-3" />
+                                <span>{currentLang === 'vi' ? 'Phóng to' : currentLang === 'ko' ? '확대' : 'Zoom'}</span>
+                              </span>
+                            </div>
+                          </div>
 
-                        {/* Small visual banner */}
-                        <div className="pt-1 flex items-center justify-between text-[11px] text-sky-300 font-bold border-t border-slate-700">
-                          <span className="flex items-center gap-1">
-                            <Camera className="w-3 h-3" />
-                            <span>{currentLang === 'vi' ? 'Bấm để soi ảnh kiến trúc' : currentLang === 'ko' ? '건축 사진 자세히 보기' : 'Inspect architecture'}</span>
-                          </span>
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </div>
-                      </div>
+                          {/* Dedicated Architecture Details */}
+                          <div className="lg:col-span-7 space-y-3">
+                            <div className="p-3.5 rounded-2xl bg-sky-950/30 border border-sky-700/50">
+                              <span className="text-xs font-bold text-sky-400 block mb-1">
+                                🏡 {currentLang === 'vi' ? 'Nếp nhà & kết cấu đặc trưng:' : currentLang === 'ko' ? '전통 가옥 구조 & 특징:' : 'Architectural Signature:'}
+                              </span>
+                              <p className="text-sm font-bold text-sky-200 leading-snug">
+                                {modalSignatureArch}
+                              </p>
+                            </div>
 
-                      {/* Pillar 3: Festivals & Instruments */}
-                      <div
-                        onClick={() => setModalAspect('festival')}
-                        className={`p-3.5 rounded-2xl border space-y-2 cursor-pointer transition-all ${
-                          modalAspect === 'festival'
-                            ? 'bg-purple-950/40 border-purple-400 ring-2 ring-purple-400/30'
-                            : 'bg-slate-800/80 border-slate-700 hover:border-purple-400/60'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between gap-1 text-purple-400 text-xs font-bold">
-                          <span className="flex items-center gap-1.5">
-                            <Music className="w-4 h-4 text-purple-400 shrink-0" />
-                            <span>{currentLang === 'vi' ? 'Lễ Hội & Tín Ngưỡng' : currentLang === 'ko' ? '축제 & 전통 악기' : 'Festivals & Music'}</span>
-                          </span>
-                          <span className="px-1.5 py-0.2 rounded text-[10px] bg-purple-950 text-purple-300 border border-purple-800 font-semibold truncate max-w-[120px]">
-                            {currentLang === 'ko'
-                              ? (koModal?.festivalKo || '전통 축제')
-                              : (ETHNIC_FESTIVAL_SIGNATURES[zoomedEthnicImage.id]?.highlightRitual || 'Lễ hội')}
-                          </span>
-                        </div>
-                        <p className="text-[11px] font-bold text-purple-300 leading-snug">
-                          🎉 {modalSignatureFest}
-                        </p>
-                        <p className="text-xs text-slate-300 leading-relaxed">
-                          {modalDisplayFestival}
-                        </p>
-
-                        {/* Small visual banner */}
-                        <div className="pt-1 flex items-center justify-between text-[11px] text-purple-300 font-bold border-t border-slate-700">
-                          <span className="flex items-center gap-1">
-                            <Camera className="w-3 h-3" />
-                            <span>{currentLang === 'vi' ? 'Bấm để soi ảnh lễ hội' : currentLang === 'ko' ? '축제 사진 자세히 보기' : 'Inspect festival'}</span>
-                          </span>
-                          <ChevronRight className="w-3.5 h-3.5" />
+                            <div>
+                              <span className="text-xs font-bold text-slate-300 block mb-1.5 uppercase tracking-wider">
+                                📖 {currentLang === 'vi' ? 'Thông tin chi tiết về kiến trúc & nếp nhà:' : currentLang === 'ko' ? '가옥 건축 재료 & 생활 공간:' : 'Dwelling Structure & Living Space:'}
+                              </span>
+                              <p className="text-slate-200 text-sm leading-relaxed whitespace-pre-line bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+                                {modalDisplayArchitecture}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    );
+                  })()}
 
-                    {/* Cultural Highlight story */}
-                    <div className="p-3.5 rounded-2xl bg-slate-850 border border-slate-700 text-xs">
-                      <span className="font-bold text-sky-400 block mb-1">
-                        📖 {currentLang === 'vi' ? 'Bản sắc văn hóa & Tín ngưỡng dân gian:' : currentLang === 'ko' ? '문화적 정체성 & 민간 신앙:' : 'Cultural Story & Highlights:'}
-                      </span>
-                      <p className="text-slate-300 leading-relaxed">{modalDisplayHighlight}</p>
-                    </div>
+                  {/* ===================== PHẦN 3: LỄ HỘI TRUYỀN THỐNG ===================== */}
+                  {(modalActiveTab === 'all' || modalActiveTab === 'festival') && (() => {
+                    const festImg = getEthnicFestivalImage(zoomedEthnicImage);
+                    const festRitual = ETHNIC_FESTIVAL_SIGNATURES[zoomedEthnicImage.id]?.highlightRitual;
+                    return (
+                      <div className="rounded-3xl bg-slate-950 border border-purple-500/40 p-4 sm:p-6 shadow-xl space-y-4">
+                        <div className="flex items-center justify-between border-b border-purple-500/20 pb-3">
+                          <h5 className="text-base sm:text-lg font-black text-purple-300 flex items-center gap-2">
+                            <span className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400">
+                              <Music className="w-5 h-5" />
+                            </span>
+                            <span>
+                              {currentLang === 'vi'
+                                ? '3. Lễ Hội Tiêu Biểu & Âm Vang Bản Sắc'
+                                : currentLang === 'ko'
+                                ? '3. 대표 민속 축제 & 전통 신앙'
+                                : '3. Living Festivals & Sacred Rituals'}
+                            </span>
+                          </h5>
+                          {festRitual && (
+                            <span className="px-2.5 py-1 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/40 text-xs font-bold">
+                              🎉 {currentLang === 'ko' && koModal?.festivalKo ? '전통 의례' : festRitual}
+                            </span>
+                          )}
+                        </div>
 
-                    {/* Residence & Speech Narration */}
-                    <div className="pt-2 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <p className="text-[11px] text-slate-400">
-                        📍 <strong>{currentLang === 'vi' ? 'Địa bàn cư trú:' : currentLang === 'ko' ? '주요 거주 지역:' : 'Residence:'}</strong> {modalDisplayResidence}
-                      </p>
-                      <button
-                        onClick={() => {
-                          const narrationText = currentLang === 'ko' && koModal
-                            ? (modalAspect === 'architecture'
-                                ? `${koModal.nameKo}의 주거 건축 양식. ${koModal.architectureKo}. 주요 거주 지역: ${koModal.residenceKo}`
-                                : modalAspect === 'festival'
-                                ? `${koModal.nameKo}의 전통 축제 및 민속 신앙. ${koModal.festivalKo}.`
-                                : `${koModal.nameKo}. 전통 복식: ${koModal.costumeKo}. 주거 건축: ${koModal.architectureKo}. 대표 축제: ${koModal.festivalKo}. 문화적 정체성: ${koModal.culturalHighlightKo}`)
-                            : (modalAspect === 'architecture'
-                                ? `Kiến trúc nhà ở của dân tộc ${zoomedEthnicImage.name}. ${ETHNIC_ARCHITECTURE_SIGNATURES[zoomedEthnicImage.id]?.vi || zoomedEthnicImage.architecture}. ${zoomedEthnicImage.architecture}. Địa bàn cư trú: ${zoomedEthnicImage.residence}`
-                                : modalAspect === 'festival'
-                                ? `Lễ hội truyền thống của dân tộc ${zoomedEthnicImage.name}. ${ETHNIC_FESTIVAL_SIGNATURES[zoomedEthnicImage.id]?.vi || zoomedEthnicImage.festivals}. ${zoomedEthnicImage.festivals}.`
-                                : `Dân tộc ${zoomedEthnicImage.name}. Trang phục truyền thống: ${ETHNIC_COSTUME_SIGNATURES[zoomedEthnicImage.id]?.vi || zoomedEthnicImage.traditionalCostume}. ${zoomedEthnicImage.traditionalCostume}. Kiến trúc: ${zoomedEthnicImage.architecture}. Lễ hội: ${zoomedEthnicImage.festivals}`);
-                          playVoiceGuide(narrationText, currentLang);
-                        }}
-                        className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all cursor-pointer shadow-sm hover:scale-102 shrink-0"
-                      >
-                        <Volume2 className="w-4 h-4" />
-                        <span>{currentLang === 'vi' ? 'Nghe Thuyết Minh Đặc Trưng' : currentLang === 'ko' ? '특징 오디오 해설 듣기' : 'Listen Narration'}</span>
-                      </button>
-                    </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                          {/* Dedicated Festival Image */}
+                          <div
+                            onClick={() =>
+                              setZoomedPhoto({
+                                url: festImg,
+                                title: `${modalDisplayName} - Lễ Hội & Nghi Lễ`,
+                                subtitle: modalSignatureFest,
+                              })
+                            }
+                            className="lg:col-span-5 relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-900 border border-purple-500/30 group/fImg cursor-pointer shadow-md"
+                          >
+                            <img
+                              src={festImg}
+                              alt={`${modalDisplayName} - Lễ hội truyền thống`}
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover group-hover/fImg:scale-106 transition-transform duration-500"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end justify-between p-3">
+                              <span className="text-[11px] font-bold text-purple-200 flex items-center gap-1 bg-black/60 px-2 py-1 rounded-md backdrop-blur-xs">
+                                <Music className="w-3.5 h-3.5 text-purple-400" />
+                                <span>{currentLang === 'vi' ? 'Ảnh lễ hội' : currentLang === 'ko' ? '축제 사진' : 'Festival photo'}</span>
+                              </span>
+                              <span className="text-[10px] font-black px-2 py-1 rounded-md bg-purple-500 text-white flex items-center gap-1 shadow-xs group-hover/fImg:bg-purple-400">
+                                <Maximize2 className="w-3 h-3" />
+                                <span>{currentLang === 'vi' ? 'Phóng to' : currentLang === 'ko' ? '확대' : 'Zoom'}</span>
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Dedicated Festival Details */}
+                          <div className="lg:col-span-7 space-y-3">
+                            <div className="p-3.5 rounded-2xl bg-purple-950/30 border border-purple-700/50">
+                              <span className="text-xs font-bold text-purple-400 block mb-1">
+                                🎉 {currentLang === 'vi' ? 'Nghi lễ & âm hưởng tâm linh tiêu biểu:' : currentLang === 'ko' ? '대표 의례 & 전통 악기:' : 'Sacred Ritual & Music:'}
+                              </span>
+                              <p className="text-sm font-bold text-purple-200 leading-snug">
+                                {modalSignatureFest}
+                              </p>
+                            </div>
+
+                            <div>
+                              <span className="text-xs font-bold text-slate-300 block mb-1.5 uppercase tracking-wider">
+                                📖 {currentLang === 'vi' ? 'Thông tin chi tiết về lễ hội & nhạc cụ dân gian:' : currentLang === 'ko' ? '축제 일정, 춤 & 민속 악기 상세:' : 'Living Festivals & Folk Instruments:'}
+                              </span>
+                              <p className="text-slate-200 text-sm leading-relaxed whitespace-pre-line bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+                                {modalDisplayFestival}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Cultural Highlight story */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-slate-950/90 border border-slate-800 text-xs sm:text-sm">
+                    <span className="font-bold text-amber-400 block mb-1.5 flex items-center gap-1.5">
+                      <BookOpen className="w-4 h-4 text-amber-400" />
+                      {currentLang === 'vi'
+                        ? 'Bản sắc văn hóa & Tín ngưỡng dân gian:'
+                        : currentLang === 'ko'
+                        ? '문화적 정체성 & 민간 신앙:'
+                        : 'Cultural Identity & Folk Beliefs:'}
+                    </span>
+                    <p className="text-slate-300 leading-relaxed">{modalDisplayHighlight}</p>
+                  </div>
+
+                  {/* Residence & Population Footer */}
+                  <div className="pt-2 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-400">
+                    <p>
+                      📍 <strong>{currentLang === 'vi' ? 'Địa bàn cư trú chính:' : currentLang === 'ko' ? '주요 거주 지역:' : 'Residence:'}</strong>{' '}
+                      <span className="text-slate-200">{modalDisplayResidence}</span>
+                    </p>
+                    <p>
+                      👥 <strong>{currentLang === 'vi' ? 'Dân số ước tính:' : currentLang === 'ko' ? '추정 인구:' : 'Population:'}</strong>{' '}
+                      <span className="text-amber-300 font-semibold">{zoomedEthnicImage.populationEstimate}</span>
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
           );
         })()}
+
+        {/* Fullscreen Photo Lightbox Modal */}
+        {zoomedPhoto && (
+          <div
+            className="fixed inset-0 z-60 bg-black/92 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200"
+            onClick={() => setZoomedPhoto(null)}
+          >
+            <div
+              className="relative max-w-4xl w-full bg-slate-950 rounded-3xl overflow-hidden border border-slate-800 shadow-2xl flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="relative aspect-[16/10] sm:aspect-[16/9] max-h-[75vh] bg-black flex items-center justify-center overflow-hidden">
+                <img
+                  src={zoomedPhoto.url}
+                  alt={zoomedPhoto.title}
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-contain"
+                />
+                <button
+                  onClick={() => setZoomedPhoto(null)}
+                  className="absolute top-3 right-3 p-2.5 rounded-full bg-black/70 hover:bg-amber-500 hover:text-slate-950 text-white transition-all cursor-pointer shadow-lg z-10"
+                  title="Đóng (Close)"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-4 sm:p-5 bg-slate-900 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-white">
+                <div>
+                  <h4 className="text-base sm:text-lg font-black text-amber-300">{zoomedPhoto.title}</h4>
+                  {zoomedPhoto.subtitle && (
+                    <p className="text-xs text-slate-300 mt-0.5">{zoomedPhoto.subtitle}</p>
+                  )}
+                </div>
+                <button
+                  onClick={() => setZoomedPhoto(null)}
+                  className="self-end sm:self-auto px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold transition-colors cursor-pointer border border-slate-700 text-slate-200 hover:text-white"
+                >
+                  {currentLang === 'vi' ? 'Đóng ảnh' : currentLang === 'ko' ? '닫기' : 'Close'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

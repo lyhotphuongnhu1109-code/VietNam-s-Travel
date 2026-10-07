@@ -22,6 +22,7 @@ import { TravelokaIntegrationModal } from './components/TravelokaIntegrationModa
 import { ServiceBookingModal } from './components/ServiceBookingModal';
 import { AuthModal } from './components/AuthModal';
 import { AccountHubModal } from './components/AccountHubModal';
+import { UniversalSearchModal } from './components/UniversalSearchModal';
 
 export default function App() {
   const { openTravelokaModal } = useAuth();
@@ -29,6 +30,19 @@ export default function App() {
 
   const [activeSection, setActiveSection] = useState<string>('intro');
   const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
+  const [searchModalOpen, setSearchModalOpen] = useState<boolean>(false);
+
+  // Global keyboard shortcut Ctrl+K / Cmd+K to open search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchModalOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -84,6 +98,7 @@ export default function App() {
         currentLang={currentLang}
         onToggleLang={(lang) => setCurrentLang(lang)}
         activeSection={activeSection}
+        onOpenSearch={() => setSearchModalOpen(true)}
       />
 
       {/* Main Content Sections */}
@@ -163,6 +178,11 @@ export default function App() {
       </div>
 
       {/* Global Interactive Modals */}
+      <UniversalSearchModal
+        isOpen={searchModalOpen}
+        onClose={() => setSearchModalOpen(false)}
+        currentLang={currentLang}
+      />
       <TravelokaIntegrationModal currentLang={currentLang} />
       <ServiceBookingModal currentLang={currentLang} />
       <AuthModal currentLang={currentLang} />

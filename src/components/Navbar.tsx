@@ -33,6 +33,7 @@ interface NavbarProps {
   currentLang: Language;
   onToggleLang: (lang: Language) => void;
   activeSection: string;
+  onOpenSearch?: () => void;
 }
 
 interface NavGridItem {
@@ -79,6 +80,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   currentLang,
   onToggleLang,
   activeSection,
+  onOpenSearch,
 }) => {
   const { openTravelokaModal, isAuthenticated, currentUser, openAccountModal, openAuthModal } = useAuth();
   const [gridMenuOpen, setGridMenuOpen] = useState(false);
@@ -481,8 +483,25 @@ export const Navbar: React.FC<NavbarProps> = ({
               })}
             </div>
 
-            {/* Right Action: Traveloka + Grid Menu + Language Switch + Map + Account */}
+            {/* Right Action: Search + Traveloka + Grid Menu + Language Switch + Map + Account */}
             <div className="flex items-center gap-1.5 sm:gap-2">
+              {/* Search Button with Magnifying Glass Icon Only (no text) */}
+              <button
+                id="header-cta-search"
+                onClick={onOpenSearch}
+                className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white shadow-xs hover:shadow-md transition-all flex items-center justify-center cursor-pointer group shrink-0"
+                title={
+                  currentLang === 'vi'
+                    ? 'Tìm kiếm địa điểm, món ăn, menu (Ctrl+K)'
+                    : currentLang === 'ko'
+                    ? '통합 검색 (Ctrl+K)'
+                    : 'Search (Ctrl+K)'
+                }
+                aria-label="Tìm kiếm"
+              >
+                <Search className="w-5 h-5 group-hover:scale-110 group-hover:rotate-6 transition-transform" />
+              </button>
+
               {/* Traveloka Quick Button */}
               <button
                 id="header-cta-traveloka"
