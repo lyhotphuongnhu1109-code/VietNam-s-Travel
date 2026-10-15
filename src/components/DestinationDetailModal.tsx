@@ -18,12 +18,15 @@ import {
   Star,
   Info,
   ChevronLeft,
+  Map,
+  Navigation,
 } from 'lucide-react';
 import { Destination, Language } from '../types';
 import { DESTINATION_DETAILS, DestinationFullGuide } from '../data/destinationDetailData';
 import { playVoiceGuide, stopVoiceGuide } from '../utils/speech';
 import { useAuth } from '../context/AuthContext';
 import { KO_DESTINATIONS } from '../data/koreanTranslations';
+import { GoogleMapsEmbed } from './GoogleMapsEmbed';
 
 interface DestinationDetailModalProps {
   destination: Destination | null;
@@ -40,6 +43,7 @@ export const DestinationDetailModal: React.FC<DestinationDetailModalProps> = ({
   const [activeTab, setActiveTab] = useState<'info' | 'flights' | 'hotels' | 'dining'>('info');
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [expandedDiningMapIdx, setExpandedDiningMapIdx] = useState<number | null>(null);
 
   // Close on Escape key press
   useEffect(() => {
@@ -58,6 +62,7 @@ export const DestinationDetailModal: React.FC<DestinationDetailModalProps> = ({
     setActiveTab('info');
     setSelectedImageIdx(0);
     setIsPlayingAudio(false);
+    setExpandedDiningMapIdx(null);
   }, [destination]);
 
   if (!destination) return null;
@@ -620,47 +625,114 @@ export const DestinationDetailModal: React.FC<DestinationDetailModalProps> = ({
 
               {/* Dining Spots List Cards */}
               <div className="space-y-3.5">
-                {details.diningSpots.map((spot, idx) => (
-                  <div
-                    key={idx}
-                    className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs hover:border-amber-300 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h5 className="text-sm font-black text-slate-900">
-                          {spot.name}
-                        </h5>
-                        <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-bold">
-                          <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-                          <span>{spot.rating} / 5.0</span>
+                {details.diningSpots.map((spot, idx) => {
+                  const isMapOpen = expandedDiningMapIdx === idx;
+
+                  return (
+                    <div
+                      key={idx}
+                      className={`p-4 sm:p-5 rounded-2xl bg-white border transition-all flex flex-col gap-3 ${
+                        isMapOpen
+                          ? 'border-amber-400 shadow-md ring-2 ring-amber-400/20'
+                          : 'border-slate-200 shadow-2xs hover:border-amber-300 hover:shadow-xs'
+                      }`}
+                    >
+                      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <h5 className="text-sm font-black text-slate-900">
+                              {spot.name}
+                            </h5>
+                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-bold">
+                              <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                              <span>{spot.rating} / 5.0</span>
+                            </div>
+                          </div>
+
+                          <div className="text-xs font-bold text-amber-700 mb-2 flex items-center gap-1.5">
+                            <Utensils className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                            <span>Món đặc sản: {spot.dish}</span>
+                          </div>
+
+                          {/* Address & Google Maps Actions */}
+                          <div className="p-3 rounded-xl bg-amber-50/50 border border-amber-200/60 mb-2">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                              <p className="text-xs text-slate-700 flex items-start gap-1.5 min-w-0 flex-1">
+                                <MapPin className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                                <span className="leading-relaxed">
+                                  <strong className="text-slate-900 font-bold">
+                                    {currentLang === 'vi' ? 'Địa chỉ:' : currentLang === 'ko' ? '주소:' : 'Address:'}
+                                  </strong>{' '}
+                                  {spot.address}
+                                </span>
+                              </p>
+
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => setExpandedDiningMapIdx(isMapOpen ? null : idx)}
+                                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                                    isMapOpen
+                                      ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
+                                      : 'bg-white hover:bg-amber-100 text-amber-900 border-amber-300 shadow-2xs'
+                                  }`}
+                                  title="Xem bản đồ vị trí trực quan trên Google Maps"
+                                >
+                                  <Map className="w-3 h-3" />
+                                  <span>
+                                    {isMapOpen
+                                      ? currentLang === 'vi' ? 'Ẩn bản đồ' : 'Hide map'
+                                      : currentLang === 'vi' ? 'Xem Google Map' : 'Google Map'}
+                                  </span>
+                                </button>
+
+                                <a
+                                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+                                    spot.address
+                                  )}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition-colors cursor-pointer"
+                                  title="Chỉ đường trên Google Maps"
+                                >
+                                  <Navigation className="w-3 h-3" />
+                                  <span>{currentLang === 'vi' ? 'Chỉ đường' : 'Directions'}</span>
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+
+                          <p className="text-[11px] text-slate-600 italic bg-amber-50/60 p-2.5 rounded-xl border border-amber-200/50">
+                            💡 <strong>Mẹo sành ăn:</strong> {spot.highlightTip}
+                          </p>
+                        </div>
+
+                        <div className="md:text-right shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 md:pl-4">
+                          <span className="text-[10px] text-slate-400 block font-medium">Khoảng giá:</span>
+                          <span className="text-sm font-black text-slate-900 block text-emerald-700">
+                            {spot.priceRange}
+                          </span>
+                          <span className="text-[10px] text-slate-500 block mt-1">
+                            🕒 {spot.openingHours}
+                          </span>
                         </div>
                       </div>
 
-                      <div className="text-xs font-bold text-amber-700 mb-1.5 flex items-center gap-1.5">
-                        <Utensils className="w-3.5 h-3.5 text-amber-600" />
-                        <span>Món đặc sản: {spot.dish}</span>
-                      </div>
-
-                      <p className="text-xs text-slate-600 mb-1">
-                        📍 <strong>Địa chỉ:</strong> {spot.address}
-                      </p>
-
-                      <p className="text-[11px] text-slate-500 italic bg-amber-50/60 p-2.5 rounded-xl border border-amber-200/50 mt-2">
-                        💡 <strong>Mẹo sành ăn:</strong> {spot.highlightTip}
-                      </p>
+                      {/* Expandable Embedded Google Map */}
+                      {isMapOpen && (
+                        <div className="mt-1 pt-3 border-t border-amber-200/60 animate-in fade-in duration-200">
+                          <GoogleMapsEmbed
+                            name={spot.name}
+                            address={spot.address}
+                            dish={spot.dish}
+                            currentLang={currentLang}
+                            height="240px"
+                          />
+                        </div>
+                      )}
                     </div>
-
-                    <div className="md:text-right shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100">
-                      <span className="text-[10px] text-slate-400 block font-medium">Khoảng giá:</span>
-                      <span className="text-sm font-black text-slate-900 block text-emerald-700">
-                        {spot.priceRange}
-                      </span>
-                      <span className="text-[10px] text-slate-500 block mt-1">
-                        🕒 {spot.openingHours}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

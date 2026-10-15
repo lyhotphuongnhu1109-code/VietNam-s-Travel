@@ -464,24 +464,41 @@ export const SovereigntyAndIslands: React.FC<SovereigntyAndIslandsProps> = ({
         </div>
 
         {/* Patriotic Quote Banner */}
-        <div className="mt-12 rounded-3xl bg-linear-to-r from-slate-900 via-sky-950 to-slate-900 text-white p-6 sm:p-8 text-center relative overflow-hidden shadow-lg">
+        <div className="mt-12 rounded-3xl bg-linear-to-r from-slate-900 via-sky-950 to-slate-900 text-white p-6 sm:p-8 text-center relative overflow-hidden shadow-lg border border-sky-800/40">
           <div className="max-w-3xl mx-auto relative z-10">
-            <span className="text-rose-400 font-bold text-xs uppercase tracking-widest block mb-2">
+            <span className="text-rose-400 font-bold text-xs uppercase tracking-widest block mb-3">
               {currentLang === 'vi' ? 'Lời thề non nước Việt Nam' : currentLang === 'ko' ? '베트남 조국의 영원한 맹세' : 'Eternal Oath of the Vietnamese Homeland'}
             </span>
-            <blockquote className="text-base sm:text-xl font-extrabold italic leading-relaxed text-sky-100 mb-3">
-              {currentLang === 'vi'
-                ? '“Nam quốc sơn hà Nam đế cư - Tiệt nhiên định phận tại thiên thư... Một tấc đất của tiền nhân để lại cũng quyết không để lọt vào tay kẻ khác.”'
-                : currentLang === 'ko'
-                ? '“남국의 산하는 남쪽 황제가 다스리니, 천상의 책에 명백히 정해져 있도다... 선조가 물려준 조국의 단 한 뼘 땅도 결코 남의 손에 넘겨주지 않으리라.”'
-                : '“Over the mountains and rivers of the South, the Southern Emperor reigns — such is firmly written in the Celestial Book... Not a single inch of the land bequeathed by our ancestors shall ever be surrendered.”'}
+            <blockquote className="text-base sm:text-lg md:text-xl font-extrabold italic leading-relaxed text-sky-100 mb-4 space-y-1">
+              {currentLang === 'vi' ? (
+                <>
+                  <p className="tracking-wide">“Nam quốc sơn hà Nam đế cư</p>
+                  <p className="tracking-wide">Tiệt nhiên định phận tại thiên thư</p>
+                  <p className="tracking-wide">Như hà nghịch lỗ lai xâm phạm</p>
+                  <p className="tracking-wide">Nhữ đẳng hành khang thủ bại hư”</p>
+                </>
+              ) : currentLang === 'ko' ? (
+                <>
+                  <p className="tracking-wide">“남국 산하는 남쪽 황제가 다스리니,</p>
+                  <p className="tracking-wide">천상의 책에 명백히 정해져 있도다.</p>
+                  <p className="tracking-wide">어찌하여 침략자들이 함부로 침범하는가,</p>
+                  <p className="tracking-wide">너희 무리는 마땅히 패망을 맞이하리라.”</p>
+                </>
+              ) : (
+                <>
+                  <p className="tracking-wide">“Over the mountains and rivers of the South, the Southern Emperor reigns,</p>
+                  <p className="tracking-wide">As clearly ordained in the Celestial Book.</p>
+                  <p className="tracking-wide">How dare rebellious invaders trespass upon this land?</p>
+                  <p className="tracking-wide">You shall inevitably face complete defeat!”</p>
+                </>
+              )}
             </blockquote>
             <p className="text-xs text-sky-300 font-medium">
               {currentLang === 'vi'
-                ? 'Bản trường ca giữ nước ngàn năm của dân tộc Việt Nam'
+                ? '— Bản tuyên ngôn độc lập đầu tiên của dân tộc Việt Nam (Thơ thần Nam Quốc Sơn Hà)'
                 : currentLang === 'ko'
-                ? '베트남 민족 천년 영토 수호의 대서사시'
-                : 'The thousand-year anthem of safeguarding Vietnam’s sovereignty'}
+                ? '— 남국산하 (베트남 최초의 독립 선언문)'
+                : '— Nam Quoc Son Ha (Vietnam’s first sacred declaration of independence)'}
             </p>
           </div>
         </div>
