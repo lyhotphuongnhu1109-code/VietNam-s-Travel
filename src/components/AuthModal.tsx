@@ -207,7 +207,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ currentLang }) => {
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center shadow-md overflow-hidden shrink-0">
               <img
-                src="/src/assets/images/app_logo_1791123199904.jpg"
+                src="/src/assets/images/vietnam_travel_logo_1792241679393.jpg"
                 alt="VIETNAM'S TRAVEL"
                 className="w-full h-full object-contain rounded-lg"
                 referrerPolicy="no-referrer"

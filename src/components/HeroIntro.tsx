@@ -37,7 +37,7 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
         <div className="text-center max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-sky-50 via-emerald-50 to-amber-50 text-slate-800 text-xs sm:text-sm font-semibold mb-6 border border-sky-200/80 shadow-xs">
             <img
-              src="/src/assets/images/app_logo_1791123199904.jpg"
+              src="/src/assets/images/vietnam_travel_logo_1792241679393.jpg"
               alt="VIETNAM'S TRAVEL Logo"
               className="w-5 h-5 rounded-md object-contain"
               referrerPolicy="no-referrer"

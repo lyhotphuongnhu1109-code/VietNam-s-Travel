@@ -32,7 +32,7 @@ export const AppLogo: React.FC<AppLogoProps> = ({
         className={`${sizeMap[size]} bg-white p-1 border border-slate-200/80 shadow-md shadow-slate-900/5 flex items-center justify-center overflow-hidden shrink-0 transition-transform group-hover:scale-105`}
       >
         <img
-          src="/src/assets/images/app_logo_1791123199904.jpg"
+          src="/src/assets/images/vietnam_travel_logo_1792241679393.jpg"
           alt="VIETNAM'S TRAVEL Official Logo"
           className="w-full h-full object-contain rounded-lg"
           referrerPolicy="no-referrer"

@@ -432,7 +432,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white p-1 border border-slate-200/90 shadow-md shadow-sky-900/5 flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
                 <img
-                  src="/src/assets/images/app_logo_1791123199904.jpg"
+                  src="/src/assets/images/vietnam_travel_logo_1792241679393.jpg"
                   alt="VIETNAM'S TRAVEL"
                   className="w-full h-full object-contain rounded-xl"
                   referrerPolicy="no-referrer"
