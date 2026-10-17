@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { playVoiceGuide, stopVoiceGuide } from '../utils/speech';
-
+import { AppLogo } from './AppLogo';
 
 import { Language } from '../types';
 
@@ -431,12 +431,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="flex items-center gap-3 text-left group cursor-pointer focus:outline-hidden shrink-0"
             >
               <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white p-1 border border-slate-200/90 shadow-md shadow-sky-900/5 flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
-                <img
-                  src="/src/assets/images/vietnam_travel_logo_1792241679393.jpg"
-                  alt="VIETNAM'S TRAVEL"
-                  className="w-full h-full object-contain rounded-xl"
-                  referrerPolicy="no-referrer"
-                />
+                <AppLogo size="sm" showText={false} />
               </div>
               <div>
                 <div className="flex items-center gap-1.5">

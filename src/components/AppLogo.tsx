@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface AppLogoProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
@@ -8,6 +8,10 @@ interface AppLogoProps {
   className?: string;
 }
 
+const DEFAULT_ICON = '/logo-icon.png?v=3';
+const DEFAULT_LOGO = '/logo.png?v=3';
+const FALLBACK_LOGO = '/logo.jpg?v=3';
+
 export const AppLogo: React.FC<AppLogoProps> = ({
   size = 'md',
   showText = false,
@@ -15,6 +19,20 @@ export const AppLogo: React.FC<AppLogoProps> = ({
   subtitle = 'THE LAND OF ENDLESS DISCOVERY',
   className = '',
 }) => {
+  const [logoSrc, setLogoSrc] = useState<string>(() => {
+    return localStorage.getItem('vietnam_travel_custom_logo') || (showText ? DEFAULT_LOGO : DEFAULT_ICON);
+  });
+
+  useEffect(() => {
+    const handleLogoUpdate = (e: any) => {
+      if (e.detail) {
+        setLogoSrc(e.detail);
+      }
+    };
+    window.addEventListener('app_logo_updated', handleLogoUpdate);
+    return () => window.removeEventListener('app_logo_updated', handleLogoUpdate);
+  }, []);
+
   const sizeMap = {
     xs: 'w-7 h-7 rounded-lg',
     sm: 'w-9 h-9 rounded-xl',
@@ -32,10 +50,15 @@ export const AppLogo: React.FC<AppLogoProps> = ({
         className={`${sizeMap[size]} bg-white p-1 border border-slate-200/80 shadow-md shadow-slate-900/5 flex items-center justify-center overflow-hidden shrink-0 transition-transform group-hover:scale-105`}
       >
         <img
-          src="/src/assets/images/vietnam_travel_logo_1792241679393.jpg"
+          src={logoSrc}
           alt="VIETNAM'S TRAVEL Official Logo"
           className="w-full h-full object-contain rounded-lg"
           referrerPolicy="no-referrer"
+          onError={() => {
+            if (logoSrc !== FALLBACK_LOGO) {
+              setLogoSrc(FALLBACK_LOGO);
+            }
+          }}
         />
       </div>
 

@@ -34,7 +34,10 @@ export const Footer: React.FC<FooterProps> = ({ currentLang }) => {
             <div className="flex items-center gap-3 mb-4">
               <div className="w-11 h-11 rounded-2xl bg-white p-1 flex items-center justify-center shadow-md overflow-hidden shrink-0 border border-slate-700">
                 <img
-                  src="/src/assets/images/vietnam_travel_logo_1792241679393.jpg"
+                  src="/logo-icon.png?v=3"
+                  onError={(e) => {
+                    e.currentTarget.src = "/logo.png?v=3";
+                  }}
                   alt="VIETNAM'S TRAVEL"
                   className="w-full h-full object-contain rounded-xl"
                   referrerPolicy="no-referrer"
