@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -446,6 +446,59 @@ Output strictly valid JSON with this exact schema:
       config: {
         systemInstruction,
         responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            id: { type: Type.STRING },
+            title: { type: Type.STRING },
+            durationLabel: { type: Type.STRING },
+            overview: { type: Type.STRING },
+            budgetLevel: { type: Type.STRING },
+            estimatedCostTotal: { type: Type.STRING },
+            bestTime: { type: Type.STRING },
+            specialTip: { type: Type.STRING },
+            days: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  dayNumber: { type: Type.INTEGER },
+                  destination: { type: Type.STRING },
+                  budgetEstimate: { type: Type.STRING },
+                  highlights: {
+                    type: Type.ARRAY,
+                    items: { type: Type.STRING },
+                  },
+                  morning: { type: Type.STRING },
+                  afternoon: { type: Type.STRING },
+                  evening: { type: Type.STRING },
+                  transport: { type: Type.STRING },
+                  stay: { type: Type.STRING },
+                },
+                required: [
+                  "dayNumber",
+                  "destination",
+                  "budgetEstimate",
+                  "highlights",
+                  "morning",
+                  "afternoon",
+                  "evening",
+                  "transport",
+                  "stay",
+                ],
+              },
+            },
+          },
+          required: [
+            "id",
+            "title",
+            "durationLabel",
+            "overview",
+            "budgetLevel",
+            "estimatedCostTotal",
+            "days",
+          ],
+        },
         temperature: 0.7,
       },
     });
@@ -473,6 +526,174 @@ Output strictly valid JSON with this exact schema:
       req.body.duration || "4-7"
     );
     return res.json({ itinerary: fallbackItinerary, fallback: true, error: error.message });
+  }
+});
+
+// AI Itinerary Tweak with Gemini (Direct interactive adjustments with context)
+app.post("/api/gemini/itinerary-tweak", async (req, res) => {
+  try {
+    const { currentPlan, tweakInstruction, language = "vi" } = req.body;
+    if (!currentPlan || !tweakInstruction) {
+      return res.status(400).json({ error: "Missing currentPlan or tweakInstruction" });
+    }
+
+    const ai = getGemini();
+    if (!ai) {
+      return res.json({ itinerary: currentPlan, fallback: true });
+    }
+
+    const targetLangName =
+      language === "ko" ? "Korean (한국어)" : language === "en" ? "English" : "Vietnamese (Tiếng Việt)";
+
+    const systemInstruction = `You are the Google Gemini Travel Assistant for "VIETNAM'S TRAVEL".
+You are given an existing travel itinerary and an adjustment instruction from the user.
+Modify the itinerary accurately according to their request while keeping the rest of the plan cohesive, realistic, and written in natural ${targetLangName}.
+Return strictly valid JSON with the exact same itinerary structure.`;
+
+    const promptText = `Current itinerary:
+${JSON.stringify(currentPlan, null, 2)}
+
+User's requested adjustment:
+"${tweakInstruction}"
+
+Please update the itinerary accordingly. Return strictly valid JSON with this exact schema:
+{
+  "id": "${currentPlan.id || 'itinerary'}-tweak-${Date.now()}",
+  "title": "Updated title",
+  "durationLabel": "${currentPlan.durationLabel || ''}",
+  "overview": "Updated overview reflecting the change",
+  "budgetLevel": "Tiết kiệm / Tiêu chuẩn / Cao cấp",
+  "estimatedCostTotal": "Updated total spend estimate",
+  "bestTime": "Best time to visit",
+  "specialTip": "Updated tip for this route",
+  "days": [
+    {
+      "dayNumber": 1,
+      "destination": "City name",
+      "budgetEstimate": "Daily budget",
+      "highlights": ["h1", "h2", "h3"],
+      "morning": "Morning activity",
+      "afternoon": "Afternoon activity",
+      "evening": "Evening activity",
+      "transport": "Transport mode",
+      "stay": "Hotel style"
+    }
+  ]
+}`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.8-flash",
+      contents: promptText,
+      config: {
+        systemInstruction,
+        responseMimeType: "application/json",
+        temperature: 0.7,
+      },
+    });
+
+    let updatedPlan = null;
+    try {
+      if (response.text) {
+        updatedPlan = JSON.parse(response.text.trim());
+      }
+    } catch (e) {
+      console.warn("Parse error in itinerary-tweak:", e);
+    }
+
+    if (!updatedPlan || !Array.isArray(updatedPlan.days)) {
+      return res.json({ itinerary: currentPlan, fallback: true });
+    }
+
+    return res.json({ itinerary: updatedPlan, fallback: false });
+  } catch (error: any) {
+    console.error("Gemini itinerary tweak error:", error);
+    return res.status(500).json({ error: error.message || "Tweak failed" });
+  }
+});
+
+// Quick Gemini Day Advice (Tips, outfit, photo spots, hidden gems for a specific day)
+app.post("/api/gemini/day-advice", async (req, res) => {
+  try {
+    const { day, destination, question, language = "vi" } = req.body;
+    const ai = getGemini();
+    if (!ai) {
+      return res.json({
+        advice:
+          language === "vi"
+            ? "💡 Lời khuyên: Chuẩn bị trang phục thoáng mát, mang theo sạc dự phòng, kem chống nắng và đừng quên thưởng thức đặc sản đường phố địa phương vào buổi tối!"
+            : "💡 Tip: Wear comfortable shoes, carry sunscreen, and make sure to explore authentic local food spots in the evening!"
+      });
+    }
+
+    const targetLangName =
+      language === "ko" ? "Korean (한국어)" : language === "en" ? "English" : "Vietnamese (Tiếng Việt)";
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.8-flash",
+      contents: `Destination: ${destination || "Vietnam"}. Day details: ${JSON.stringify(day)}. User question: ${question || "Gợi ý mẹo du lịch, trang phục, góc check-in và lưu ý an toàn cho ngày này."}`,
+      config: {
+        systemInstruction: `You are Google Gemini, the official expert AI travel companion for "VIETNAM'S TRAVEL". Provide 3-4 concise, highly practical, insider tips (outfit recommendation, best photography angle/time, must-try local dish, and safety/transport tip) for this travel day in natural ${targetLangName}. Keep it inspiring, clear with bullet points and friendly emojis.`,
+        temperature: 0.7,
+      },
+    });
+
+    return res.json({ advice: response.text || "" });
+  } catch (error: any) {
+    console.error("Gemini day-advice error:", error);
+    return res.status(500).json({ error: error.message || "Advice failed" });
+  }
+});
+
+// AI Voice Narration for Itinerary using Gemini TTS (gemini-3.8-flash-lite-tts)
+app.post("/api/gemini/itinerary-audio", async (req, res) => {
+  try {
+    const { title, overview, language = "vi" } = req.body;
+    const ai = getGemini();
+    if (!ai) {
+      return res.status(503).json({ error: "Gemini AI not initialized" });
+    }
+
+    const narrationScript =
+      language === "ko"
+        ? `안녕하세요! VIETNAM'S TRAVEL AI 가이드입니다. 오늘 소개해 드릴 맞춤 여정은 "${title || '베트남 맞춤 여행'}"입니다. ${overview || '아름다운 베트남 여행을 함께 떠나보세요.'} 각 일자별 코스와 로컬 미식이 준비되어 있으니 베트남에서 잊지 못할 추억을 만들어보세요!`
+        : language === "en"
+        ? `Welcome to VIETNAM'S TRAVEL! Here is your tailored route: "${title || 'Vietnam Journey'}". ${overview || 'Explore the incredible beauty and heritage of Vietnam.'} Enjoy authentic dining, scenic highlights, and cultural discoveries!`
+        : `Chào mừng bạn đến với VIETNAM'S TRAVEL! Dưới đây là lộ trình du lịch do Google Gemini thiết kế: "${title || 'Hành Trình Du Lịch Việt Nam'}". ${overview || 'Khám phá trọn vẹn cảnh sắc kỳ vĩ và ẩm thực bản địa.'} Chúc bạn có một kỳ nghỉ thật tuyệt vời và nhiều kỷ niệm đáng nhớ!`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.8-flash-lite-tts",
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: narrationScript,
+              speechMetadata: {
+                style: "Warm, engaging, hospitable Vietnamese tour guide ambassador",
+              },
+            },
+          ],
+        },
+      ],
+      config: {
+        responseModalities: ["AUDIO"],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: { voiceName: "Kore" },
+          },
+        },
+      },
+    });
+
+    const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    if (!base64Audio) {
+      return res.status(500).json({ error: "No audio generated" });
+    }
+
+    return res.json({ audio: base64Audio });
+  } catch (error: any) {
+    console.error("Gemini itinerary-audio error:", error);
+    return res.status(500).json({ error: error.message || "Audio generation failed" });
   }
 });
 

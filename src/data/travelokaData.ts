@@ -1106,3 +1106,96 @@ export const TRAVELOKA_APP_LINKS = {
   comboHome: 'https://www.traveloka.com/vi-vn/packages',
   activitiesHome: 'https://www.traveloka.com/vi-vn/activities',
 };
+
+/**
+ * Phân giải điểm đến thành thông tin sân bay và thành phố Traveloka chính xác
+ */
+export function resolveDestinationAirport(destinationName: string): {
+  code: string;
+  nameVi: string;
+  cityVi: string;
+  cityId: string;
+} {
+  const norm = (destinationName || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+
+  if (norm.includes('ha noi') || norm.includes('noi bai') || norm.includes('hanoi')) {
+    return { code: 'HAN', nameVi: 'Hà Nội (HAN)', cityVi: 'Hà Nội', cityId: 'ha-noi' };
+  }
+  if (norm.includes('sai gon') || norm.includes('ho chi minh') || norm.includes('tphcm') || norm.includes('tan son nhat')) {
+    return { code: 'SGN', nameVi: 'TP. Hồ Chí Minh (SGN)', cityVi: 'TP. Hồ Chí Minh', cityId: 'ho-chi-minh' };
+  }
+  if (norm.includes('da nang') || norm.includes('danang') || norm.includes('ba na')) {
+    return { code: 'DAD', nameVi: 'Đà Nẵng (DAD)', cityVi: 'Đà Nẵng', cityId: 'da-nang' };
+  }
+  if (norm.includes('hoi an') || norm.includes('quang nam') || norm.includes('chu lai')) {
+    return { code: 'DAD', nameVi: 'Đà Nẵng / Hội An (DAD)', cityVi: 'Hội An', cityId: 'hoi-an' };
+  }
+  if (norm.includes('nha trang') || norm.includes('cam ranh') || norm.includes('khanh hoa')) {
+    return { code: 'CXR', nameVi: 'Nha Trang (CXR)', cityVi: 'Nha Trang', cityId: 'nha-trang' };
+  }
+  if (norm.includes('phu quoc') || norm.includes('phuquoc')) {
+    return { code: 'PQC', nameVi: 'Phú Quốc (PQC)', cityVi: 'Phú Quốc', cityId: 'phu-quoc' };
+  }
+  if (norm.includes('da lat') || norm.includes('dalat') || norm.includes('lien khuong') || norm.includes('lam dong')) {
+    return { code: 'DLI', nameVi: 'Đà Lạt (DLI)', cityVi: 'Đà Lạt', cityId: 'da-lat' };
+  }
+  if (norm.includes('hue') || norm.includes('phu bai') || norm.includes('thua thien')) {
+    return { code: 'HUI', nameVi: 'Huế (HUI)', cityVi: 'Huế', cityId: 'hue' };
+  }
+  if (norm.includes('ha long') || norm.includes('halong') || norm.includes('hai phong') || norm.includes('cat bi') || norm.includes('cat ba') || norm.includes('quang ninh')) {
+    return { code: 'HPH', nameVi: 'Hải Phòng / Hạ Long (HPH)', cityVi: 'Hạ Long', cityId: 'ha-long' };
+  }
+  if (norm.includes('sa pa') || norm.includes('sapa') || norm.includes('lao cai') || norm.includes('fansipan')) {
+    return { code: 'HAN', nameVi: 'Hà Nội ➔ Sa Pa (HAN)', cityVi: 'Sa Pa', cityId: 'sa-pa' };
+  }
+  if (norm.includes('ninh binh') || norm.includes('trang an') || norm.includes('tam coc')) {
+    return { code: 'HAN', nameVi: 'Hà Nội ➔ Ninh Bình (HAN)', cityVi: 'Ninh Bình', cityId: 'ninh-binh' };
+  }
+  if (norm.includes('ha giang') || norm.includes('dong van') || norm.includes('ma pi leng')) {
+    return { code: 'HAN', nameVi: 'Hà Nội ➔ Hà Giang (HAN)', cityVi: 'Hà Giang', cityId: 'ha-giang' };
+  }
+  if (norm.includes('quy nhon') || norm.includes('quynhon') || norm.includes('phu cat') || norm.includes('binh dinh')) {
+    return { code: 'UIH', nameVi: 'Quy Nhơn (UIH)', cityVi: 'Quy Nhơn', cityId: 'quy-nhon' };
+  }
+  if (norm.includes('can tho') || norm.includes('cantho') || norm.includes('cai rang') || norm.includes('mekong') || norm.includes('mien tay')) {
+    return { code: 'VCA', nameVi: 'Cần Thơ (VCA)', cityVi: 'Cần Thơ', cityId: 'can-tho' };
+  }
+  if (norm.includes('con dao') || norm.includes('condao')) {
+    return { code: 'VCS', nameVi: 'Côn Đảo (VCS)', cityVi: 'Côn Đảo', cityId: 'con-dao' };
+  }
+  if (norm.includes('phu yen') || norm.includes('tuy hoa')) {
+    return { code: 'TBB', nameVi: 'Tuy Hòa (TBB)', cityVi: 'Phú Yên', cityId: 'phu-yen' };
+  }
+  if (norm.includes('dong hoi') || norm.includes('phong nha') || norm.includes('quang binh')) {
+    return { code: 'VDH', nameVi: 'Đồng Hới / Phong Nha (VDH)', cityVi: 'Quảng Bình', cityId: 'phong-nha' };
+  }
+  if (norm.includes('buon ma thuot') || norm.includes('dak lak')) {
+    return { code: 'BMV', nameVi: 'Buôn Ma Thuột (BMV)', cityVi: 'Buôn Ma Thuột', cityId: 'buon-ma-thuot' };
+  }
+  if (norm.includes('pleiku') || norm.includes('gia lai')) {
+    return { code: 'PXU', nameVi: 'Pleiku (PXU)', cityVi: 'Gia Lai', cityId: 'da-nang' };
+  }
+  if (norm.includes('vung tau') || norm.includes('vungtau')) {
+    return { code: 'SGN', nameVi: 'TP. Hồ Chí Minh ➔ Vũng Tàu (SGN)', cityVi: 'Vũng Tàu', cityId: 'vung-tau' };
+  }
+  if (norm.includes('phan thiet') || norm.includes('mui ne')) {
+    return { code: 'SGN', nameVi: 'TP. Hồ Chí Minh ➔ Phan Thiết (SGN)', cityVi: 'Phan Thiết', cityId: 'phan-thiet' };
+  }
+  if (norm.includes('dien bien')) {
+    return { code: 'DIN', nameVi: 'Điện Biên Phủ (DIN)', cityVi: 'Điện Biên', cityId: 'ha-noi' };
+  }
+
+  return { code: 'DAD', nameVi: 'Đà Nẵng (DAD)', cityVi: 'Đà Nẵng', cityId: 'da-nang' };
+}
+
+/**
+ * Phân giải tên địa danh sang id thành phố khách sạn Traveloka
+ */
+export function resolveDestinationCityId(destinationName: string): string {
+  return resolveDestinationAirport(destinationName).cityId;
+}
+

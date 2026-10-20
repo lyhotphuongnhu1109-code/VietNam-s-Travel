@@ -16,6 +16,13 @@ import {
   RefreshCw,
   Sliders,
   CheckCircle2,
+  Wand2,
+  Zap,
+  MessageSquare,
+  Send,
+  X,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { Language } from '../types';
 import { useAuth } from '../context/AuthContext';
@@ -319,6 +326,67 @@ export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ currentLang 
   const [copiedToast, setCopiedToast] = useState(false);
   const [hasGeneratedCustom, setHasGeneratedCustom] = useState(false);
 
+  // Gemini Tweak & Interactive Day Advice States
+  const [tweakInstruction, setTweakInstruction] = useState('');
+  const [isTweaking, setIsTweaking] = useState(false);
+  const [tweakMessage, setTweakMessage] = useState<string | null>(null);
+  const [dayAdviceModal, setDayAdviceModal] = useState<{
+    day: AiCustomDay;
+    advice: string | null;
+    isLoading: boolean;
+    question: string;
+  } | null>(null);
+
+  // Gemini TTS Audio Narration State
+  const [isAudioLoading, setIsAudioLoading] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+
+  const handlePlayGeminiAudio = async (plan: AiCustomItinerary) => {
+    if (isPlayingAudio && audioElement) {
+      audioElement.pause();
+      setIsPlayingAudio(false);
+      return;
+    }
+
+    setIsAudioLoading(true);
+    try {
+      const res = await fetch('/api/gemini/itinerary-audio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: plan.title,
+          overview: plan.overview,
+          language: currentLang,
+        }),
+      });
+      const data = await res.json();
+      if (data.audio) {
+        if (audioElement) {
+          audioElement.pause();
+        }
+        const audio = new Audio(`data:audio/wav;base64,${data.audio}`);
+        audio.onended = () => setIsPlayingAudio(false);
+        audio.onerror = () => setIsPlayingAudio(false);
+        setAudioElement(audio);
+        await audio.play();
+        setIsPlayingAudio(true);
+      }
+    } catch (err) {
+      console.error('Failed to play Gemini audio:', err);
+    } finally {
+      setIsAudioLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    return () => {
+      if (audioElement) {
+        audioElement.pause();
+      }
+    };
+  }, [audioElement]);
+
   // Keep initial plan synced if language changes and user hasn't generated a custom plan yet
   React.useEffect(() => {
     if (!hasGeneratedCustom) {
@@ -346,6 +414,7 @@ export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ currentLang 
     }
 
     setIsAiLoading(true);
+    setTweakMessage(null);
     try {
       const res = await fetch('/api/gemini/itinerary', {
         method: 'POST',
@@ -373,6 +442,96 @@ export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ currentLang 
       console.error('Failed to generate AI itinerary:', err);
     } finally {
       setIsAiLoading(false);
+    }
+  };
+
+  // Handle interactive tweaking with Google Gemini
+  const handleTweakWithGemini = async (instructionToUse?: string) => {
+    const instruction = (instructionToUse || tweakInstruction).trim();
+    if (!instruction || !aiCustomPlan) return;
+
+    setIsTweaking(true);
+    setTweakMessage(null);
+    try {
+      const res = await fetch('/api/gemini/itinerary-tweak', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPlan: aiCustomPlan,
+          tweakInstruction: instruction,
+          language: currentLang,
+        }),
+      });
+      const data = await res.json();
+      if (data.itinerary) {
+        setAiCustomPlan(data.itinerary);
+        setHasGeneratedCustom(true);
+        setTweakInstruction('');
+        setTweakMessage(
+          currentLang === 'vi'
+            ? `✨ Google Gemini đã cập nhật lộ trình: "${instruction}"`
+            : currentLang === 'ko'
+            ? `✨ Gemini가 요청하신 조건("${instruction}")을 반영하여 일정을 업데이트했습니다.`
+            : `✨ Google Gemini updated your itinerary: "${instruction}"`
+        );
+        setTimeout(() => {
+          const el = document.getElementById('ai-itinerary-result-section');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      }
+    } catch (err) {
+      console.error('Failed to tweak itinerary with Gemini:', err);
+    } finally {
+      setIsTweaking(false);
+    }
+  };
+
+  // Handle getting Day Advice from Gemini
+  const handleOpenDayAdvice = async (day: AiCustomDay, customQ?: string) => {
+    setDayAdviceModal({
+      day,
+      advice: null,
+      isLoading: true,
+      question: customQ || '',
+    });
+
+    try {
+      const res = await fetch('/api/gemini/day-advice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          day,
+          destination: day.destination,
+          question: customQ || '',
+          language: currentLang,
+        }),
+      });
+      const data = await res.json();
+      setDayAdviceModal((prev) =>
+        prev
+          ? {
+              ...prev,
+              advice: data.advice || '',
+              isLoading: false,
+            }
+          : null
+      );
+    } catch (err) {
+      console.error('Failed to get Gemini day advice:', err);
+      setDayAdviceModal((prev) =>
+        prev
+          ? {
+              ...prev,
+              advice:
+                currentLang === 'vi'
+                  ? '💡 Hãy chuẩn bị trang phục nhẹ nhàng, giày đi bộ êm, sạc dự phòng và tận hưởng trọn vẹn từng khoảnh khắc!'
+                  : '💡 Wear comfortable shoes, carry a power bank, and enjoy every moment of your journey!',
+              isLoading: false,
+            }
+          : null
+      );
     }
   };
 
@@ -408,64 +567,71 @@ ${plan.days
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-100 text-teal-800 text-xs font-black uppercase tracking-wider mb-2 border border-teal-200 shadow-2xs">
-            <Bot className="w-3.5 h-3.5 text-teal-600" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-blue-100 via-indigo-100 to-amber-100 text-indigo-950 text-xs font-black uppercase tracking-wider mb-3 border border-indigo-200/90 shadow-2xs">
+            <Sparkles className="w-4 h-4 text-indigo-600 animate-pulse" />
             <span>
               {currentLang === 'vi'
-                ? 'TẠO LỘ TRÌNH THEO NHU CẦU CÙNG AI'
+                ? 'TÍCH HỢP GOOGLE GEMINI 3.8 FLASH • TRÍ TUỆ DU LỊCH ĐỘT PHÁ'
                 : currentLang === 'ko'
-                ? 'AI 맞춤 여행 일정 플래너'
-                : 'AI-POWERED CUSTOM ITINERARY'}
+                ? 'GOOGLE GEMINI 3.8 FLASH 탑재 • 지능형 여행 AI'
+                : 'POWERED BY GOOGLE GEMINI 3.8 FLASH • SMART TRAVEL AI'}
             </span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
           </div>
           <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
             {currentLang === 'vi'
-              ? 'Thiết Kế Lộ Trình Du Lịch Riêng Theo Mọi Nhu Cầu'
+              ? 'Thiết Kế Lộ Trình Du Lịch Thông Minh Cùng Google Gemini'
               : currentLang === 'ko'
-              ? '원하시는 여행을 입력하시면 AI가 일정을 세워드립니다'
-              : 'Design Your Custom Itinerary with Travel AI'}
+              ? 'Google Gemini AI로 완성하는 나만의 베트남 맞춤 여행 일정'
+              : 'Design Your Custom Itinerary with Google Gemini AI'}
           </h2>
           <p className="mt-3 text-sm text-slate-600 leading-relaxed">
             {currentLang === 'vi'
-              ? 'Nhập bất kỳ mong muốn nào của bạn (điểm đến yêu thích, số ngày, sở thích ăn uống, đi cùng gia đình hay phượt bạn bè, ngân sách), trí tuệ nhân tạo AI sẽ tự động lập kế hoạch chi tiết từng ngày, từng buổi sáng - trưa - tối và dự toán chi phí minh bạch.'
+              ? 'Mô hình Google Gemini 3.8 Flash kết hợp cơ sở tri thức 63 tỉnh thành Việt Nam, tự động phân tích sở thích, tối ưu cung đường, sắp xếp thực đơn ẩm thực và tính toán ngân sách chi tiết từng ngày.'
               : currentLang === 'ko'
-              ? '가고 싶은 여행지, 일정, 동행자, 선호하는 미식이나 예산 등을 자유롭게 입력하시면 AI가 일자별·시간대별 상세 루트와 실질적인 여행 경비를 투명하게 설계해 드립니다.'
-              : 'Simply describe your dream journey — destinations, days, travel style, companions, or budget — and AI will craft a complete morning-to-night itinerary with realistic local cost breakdowns.'}
+              ? 'Google Gemini 3.8 Flash 모델이 베트남 63개 성·시 관광 빅데이터와 결합하여 여행자의 취향과 예산에 맞춘 최적의 이동 동선, 미식 추천, 일자별 코스를 실시간으로 설계합니다.'
+              : 'Google Gemini 3.8 Flash combines with real Vietnam 63 provinces travel intelligence to optimize routing, recommend authentic dining, and compute precise daily spend in real-time.'}
           </p>
         </div>
 
         {/* AI Travel Route Generator Box (Primary Interactive Control) */}
-        <div className="bg-gradient-to-br from-sky-700 via-sky-600 to-teal-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-sky-900/15 mb-10 border border-sky-400/30 relative overflow-hidden">
+        <div className="bg-gradient-to-br from-sky-800 via-indigo-700 to-teal-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-indigo-950/20 mb-10 border border-indigo-300/30 relative overflow-hidden">
           {/* Background Decorative Accents */}
-          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-teal-400/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-indigo-400/20 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-teal-400/20 rounded-full blur-2xl pointer-events-none" />
 
           <div className="relative z-10 max-w-4xl mx-auto">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-black backdrop-blur-xs border border-white/20">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 text-white text-xs font-black backdrop-blur-xs border border-white/20 shadow-xs">
                 <Sparkles className="w-4 h-4 text-amber-300" />
                 <span>
                   {currentLang === 'vi'
-                    ? 'AI GENERATOR • KẾT HỢP DỮ LIỆU 63 TỈNH THÀNH'
+                    ? 'GEMINI GENERATOR • TÍNH TOÁN THEO THỜI GIAN THỰC'
                     : currentLang === 'ko'
-                    ? 'AI 스마트 플래너 • 베트남 63개 성·시 데이터 연동'
-                    : 'AI TRAVEL PLANNER • 63 PROVINCES DATA'}
+                    ? 'GEMINI GENERATOR • 실시간 지능형 루트 계산'
+                    : 'GEMINI GENERATOR • REAL-TIME AI ROUTING'}
                 </span>
                 <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
               </div>
 
-              <button
-                type="button"
-                onClick={() => setShowFilters(!showFilters)}
-                className="text-xs font-bold text-sky-100 hover:text-white cursor-pointer flex items-center gap-1.5 self-start sm:self-auto bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-xl border border-white/15 transition-colors"
-              >
-                <Sliders className="w-3.5 h-3.5 text-amber-300" />
-                <span>
-                  {showFilters
-                    ? (currentLang === 'vi' ? 'Ẩn tùy chọn nâng cao' : currentLang === 'ko' ? '세부 필터 접기' : 'Hide filters')
-                    : (currentLang === 'vi' ? 'Tùy chỉnh thời lượng & phong cách' : currentLang === 'ko' ? '일정·스타일 세부 선택' : 'Duration & style filters')}
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-indigo-950/40 text-amber-200 text-[11px] font-bold border border-white/10">
+                  <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+                  <span>Gemini 3.8 Flash</span>
                 </span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="text-xs font-bold text-sky-100 hover:text-white cursor-pointer flex items-center gap-1.5 self-start sm:self-auto bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-xl border border-white/15 transition-colors"
+                >
+                  <Sliders className="w-3.5 h-3.5 text-amber-300" />
+                  <span>
+                    {showFilters
+                      ? (currentLang === 'vi' ? 'Ẩn tùy chọn nâng cao' : currentLang === 'ko' ? '세부 필터 접기' : 'Hide filters')
+                      : (currentLang === 'vi' ? 'Tùy chỉnh thời lượng & phong cách' : currentLang === 'ko' ? '일정·스타일 세부 선택' : 'Duration & style filters')}
+                  </span>
+                </button>
+              </div>
             </div>
 
             <h3 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight">
@@ -526,10 +692,10 @@ ${plan.days
                     <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
                     <span>
                       {currentLang === 'vi'
-                        ? 'AI Đang Lập Lộ Trình...'
+                        ? 'Gemini Đang Lập Lộ Trình...'
                         : currentLang === 'ko'
-                        ? 'AI 일정 계산 중...'
-                        : 'AI Planning Route...'}
+                        ? 'Gemini 일정 계산 중...'
+                        : 'Gemini Planning Route...'}
                     </span>
                   </>
                 ) : (
@@ -537,10 +703,10 @@ ${plan.days
                     <Sparkles className="w-4 h-4 text-slate-950" />
                     <span>
                       {currentLang === 'vi'
-                        ? 'Tạo Lộ Trình Cùng AI'
+                        ? 'Tạo Lộ Trình Cùng Gemini'
                         : currentLang === 'ko'
-                        ? 'AI 맞춤 일정 생성'
-                        : 'Generate AI Route'}
+                        ? 'Gemini로 맞춤 일정 생성'
+                        : 'Generate with Gemini'}
                     </span>
                   </>
                 )}
@@ -659,23 +825,23 @@ ${plan.days
 
         {/* Loading State Banner */}
         {isAiLoading && (
-          <div className="bg-white rounded-3xl border-2 border-amber-400 shadow-xl p-8 mb-10 text-center animate-pulse">
-            <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto mb-4 shadow-xs">
-              <Loader2 className="w-7 h-7 animate-spin" />
+          <div className="bg-white rounded-3xl border-2 border-indigo-500 shadow-xl p-8 mb-10 text-center animate-pulse">
+            <div className="w-14 h-14 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center mx-auto mb-4 shadow-xs">
+              <Sparkles className="w-7 h-7 animate-pulse text-indigo-600" />
             </div>
             <h4 className="text-lg font-black text-slate-900">
               {currentLang === 'vi'
-                ? 'AI Đang Lên Kế Hoạch Lộ Trình Theo Nhu Cầu Của Bạn...'
+                ? 'Google Gemini 3.8 Flash Đang Lên Kế Hoạch Lộ Trình...'
                 : currentLang === 'ko'
-                ? 'AI가 입력하신 조건에 맞춰 최적의 일정을 설계 중입니다...'
-                : 'AI is Designing Your Tailored Itinerary...'}
+                ? 'Google Gemini 3.8 Flash가 맞춤 일정을 설계 중입니다...'
+                : 'Google Gemini 3.8 Flash is Designing Your Route...'}
             </h4>
             <p className="text-xs text-slate-500 mt-1.5 max-w-md mx-auto">
               {currentLang === 'vi'
-                ? 'Đang phân tích điểm đến, sắp xếp cung đường di chuyển tối ưu, thực đơn ẩm thực và tính toán dự toán kinh phí chuẩn xác.'
+                ? 'Gemini đang phân tích điểm đến trên 63 tỉnh thành, kết nối cung đường tối ưu, chọn lọc ẩm thực bản địa và tính toán dự toán kinh phí chuẩn xác.'
                 : currentLang === 'ko'
-                ? '여행지 간 이동 동선, 추천 미식, 일자별 볼거리와 투명한 현지 경비를 계산하고 있습니다.'
-                : 'Analyzing destinations, optimizing travel connections, food highlights, and computing daily spend estimates.'}
+                ? 'Gemini가 베트남 63개 성·시 데이터베이스를 탐색하여 최적의 동선, 로컬 미식, 일자별 볼거리와 투명한 경비를 계산하고 있습니다.'
+                : 'Gemini is evaluating 63 Vietnam provinces data to optimize connections, dining spots, and calculate realistic daily budgets.'}
             </p>
           </div>
         )}
@@ -684,18 +850,18 @@ ${plan.days
         {aiCustomPlan && (
           <div
             id="ai-itinerary-result-section"
-            className="bg-white rounded-3xl border-2 border-teal-500 shadow-xl p-6 sm:p-8 mb-10 transition-all animate-in fade-in duration-300"
+            className="bg-white rounded-3xl border-2 border-indigo-500 shadow-xl p-6 sm:p-8 mb-10 transition-all animate-in fade-in duration-300"
           >
             {/* Header of AI Result */}
             <div className="flex flex-col md:flex-row md:items-start justify-between pb-6 border-b border-sky-100 gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className="px-2.5 py-0.5 rounded-full bg-teal-600 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-2xs">
-                    <Sparkles className="w-3 h-3 text-amber-300" />
+                  <span className="px-3 py-1 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                     <span>
                       {hasGeneratedCustom
-                        ? (currentLang === 'vi' ? 'Lộ Trình AI Tùy Chỉnh' : currentLang === 'ko' ? 'AI 맞춤 생성 코스' : 'AI Custom Route')
-                        : (currentLang === 'vi' ? 'Lộ Trình Mẫu Thiết Kế Bởi AI' : currentLang === 'ko' ? 'AI 추천 표준 코스' : 'AI Featured Route')}
+                        ? (currentLang === 'vi' ? 'Lộ Trình Tùy Chỉnh Google Gemini 3.8 Flash' : currentLang === 'ko' ? 'Google Gemini 3.8 Flash 맞춤 코스' : 'Google Gemini 3.8 Flash Custom Route')
+                        : (currentLang === 'vi' ? 'Lộ Trình Chuẩn Thiết Kế Bởi Google Gemini' : currentLang === 'ko' ? 'Google Gemini 추천 코스' : 'Google Gemini Route')}
                     </span>
                   </span>
                   <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-black uppercase">
@@ -747,6 +913,36 @@ ${plan.days
                     {aiCustomPlan.estimatedCostTotal}
                   </span>
                 </div>
+
+                {/* Audio Narration Action with Gemini TTS */}
+                <button
+                  type="button"
+                  onClick={() => handlePlayGeminiAudio(aiCustomPlan)}
+                  disabled={isAudioLoading}
+                  className={`px-3.5 py-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${
+                    isPlayingAudio
+                      ? 'bg-amber-400 text-slate-950 border-amber-500 shadow-sm animate-pulse'
+                      : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border-indigo-200 shadow-2xs'
+                  }`}
+                  title={currentLang === 'vi' ? 'Nghe giọng đọc thuyết minh lộ trình bằng Google Gemini' : 'Listen to Gemini Audio Narration'}
+                >
+                  {isAudioLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
+                      <span>{currentLang === 'vi' ? 'Đang đọc...' : 'Loading audio...'}</span>
+                    </>
+                  ) : isPlayingAudio ? (
+                    <>
+                      <VolumeX className="w-4 h-4 text-slate-950" />
+                      <span>{currentLang === 'vi' ? 'Dừng Đọc' : 'Stop Audio'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Volume2 className="w-4 h-4 text-indigo-700" />
+                      <span>{currentLang === 'vi' ? 'Thuyết Minh AI' : currentLang === 'ko' ? 'AI 오디오 가이드' : 'Gemini Voice'}</span>
+                    </>
+                  )}
+                </button>
 
                 {/* Copy Itinerary Action */}
                 <button
@@ -812,6 +1008,128 @@ ${plan.days
                   </div>
                 </button>
               </div>
+            </div>
+
+            {/* Interactive Google Gemini Route Tweak Box */}
+            <div className="mt-6 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-blue-50/90 via-indigo-50/80 to-purple-50/70 border border-indigo-200/90 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+                    <Wand2 className="w-4 h-4 text-amber-300" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-slate-900 flex items-center gap-2 flex-wrap">
+                      <span>{currentLang === 'vi' ? 'Trợ Lý Google Gemini Tinh Chỉnh Lộ Trình' : currentLang === 'ko' ? 'Google Gemini 실시간 코스 맞춤 수정' : 'Google Gemini Route Tuner'}</span>
+                      <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">gemini-3.8-flash</span>
+                    </h4>
+                  </div>
+                </div>
+                <span className="text-[11px] text-slate-500 font-medium">
+                  {currentLang === 'vi' ? 'Tự động tính toán & cập nhật tức thì' : currentLang === 'ko' ? '실시간 즉시 업데이트' : 'Instant AI re-calculation'}
+                </span>
+              </div>
+
+              <p className="text-xs text-slate-600 mb-3.5 leading-relaxed">
+                {currentLang === 'vi'
+                  ? 'Bạn muốn điều chỉnh điều gì? Nhấn vào các gợi ý nhanh bên dưới hoặc nhập trực tiếp yêu cầu (ví dụ: "thêm các quán cafe trứng đẹp", "chuyển sang khách sạn 5 sao", "giảm ngân sách"): '
+                  : currentLang === 'ko'
+                  ? '일정에서 변경하고 싶은 부분이 있으신가요? 아래 추천 버튼을 누르거나 직접 요구사항을 입력해 보세요:'
+                  : 'Want to adjust anything? Click quick options below or type your custom request for Gemini:'}
+              </p>
+
+              {/* Quick Tweak Action Chips */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                {[
+                  {
+                    icon: '💰',
+                    textVi: 'Tối ưu chi phí tiết kiệm hơn',
+                    textKo: '알뜰 실속형 예산으로 절감',
+                    textEn: 'Optimize budget to be more affordable',
+                  },
+                  {
+                    icon: '📸',
+                    textVi: 'Thêm các điểm check-in sống ảo HOT',
+                    textKo: '인생샷 핫플레이스 포토존 추가',
+                    textEn: 'Add trending Instagram photo spots',
+                  },
+                  {
+                    icon: '🍜',
+                    textVi: 'Bổ sung thêm đặc sản & street food địa phương',
+                    textKo: '로컬 미식 & 스트리트 푸드 강화',
+                    textEn: 'Add more local street food gems',
+                  },
+                  {
+                    icon: '🏨',
+                    textVi: 'Nâng cấp khách sạn sang resort nghỉ dưỡng cao cấp',
+                    textKo: '고급 리조트·호텔 휴양 위주로 변경',
+                    textEn: 'Upgrade to luxury resorts & hotels',
+                  },
+                  {
+                    icon: '👨‍👩‍👧',
+                    textVi: 'Giảm nhịp độ di chuyển cho gia đình có trẻ em',
+                    textKo: '가족 맞춤 여유로운 힐링 동선으로 조정',
+                    textEn: 'Relaxed pace for families with kids',
+                  },
+                ].map((chip, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    disabled={isTweaking || isAiLoading}
+                    onClick={() => handleTweakWithGemini(currentLang === 'vi' ? chip.textVi : currentLang === 'ko' ? chip.textKo : chip.textEn)}
+                    className="px-3 py-1.5 rounded-xl bg-white hover:bg-indigo-600 hover:text-white text-slate-700 text-[11px] font-bold border border-indigo-200/80 shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 hover:scale-102"
+                  >
+                    <span>{chip.icon}</span>
+                    <span>{currentLang === 'vi' ? chip.textVi : currentLang === 'ko' ? chip.textKo : chip.textEn}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom Tweak Input Form */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleTweakWithGemini();
+                }}
+                className="flex gap-2"
+              >
+                <input
+                  type="text"
+                  value={tweakInstruction}
+                  onChange={(e) => setTweakInstruction(e.target.value)}
+                  placeholder={
+                    currentLang === 'vi'
+                      ? 'Nhập yêu cầu chỉnh sửa gửi cho Gemini (Ví dụ: "Ngày 2 thêm lặn ngắm san hô", "Đổi phương tiện sang tàu hỏa")...'
+                      : currentLang === 'ko'
+                      ? 'Gemini에게 수정 요청을 입력하세요 (예: "2일차 저녁에 야시장 추가해줘", "이동편을 기차로 변경")...'
+                      : 'Ask Gemini to tweak (e.g., "Add coral snorkeling on Day 2", "Switch to scenic train ride")...'
+                  }
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-white text-slate-900 text-xs sm:text-sm border border-indigo-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-400 shadow-2xs"
+                />
+                <button
+                  type="submit"
+                  disabled={isTweaking || !tweakInstruction.trim() || isAiLoading}
+                  className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shadow-xs shrink-0"
+                >
+                  {isTweaking ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>{currentLang === 'vi' ? 'Gemini đang sửa...' : 'Updating...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5" />
+                      <span>{currentLang === 'vi' ? 'Gửi Gemini' : currentLang === 'ko' ? 'Gemini에 요청' : 'Ask Gemini'}</span>
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {tweakMessage && (
+                <div className="mt-3 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2 animate-in fade-in">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{tweakMessage}</span>
+                </div>
+              )}
             </div>
 
             {/* Day-by-Day Detailed AI Plan Cards */}
@@ -898,6 +1216,15 @@ ${plan.days
                     <div className="flex flex-wrap items-center gap-1.5">
                       <button
                         type="button"
+                        onClick={() => handleOpenDayAdvice(day)}
+                        className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 text-indigo-800 text-[11px] font-bold border border-indigo-200 transition-colors flex items-center gap-1 cursor-pointer shadow-2xs hover:scale-102"
+                        title={currentLang === 'vi' ? `Hỏi Google Gemini mẹo du lịch cho ${day.destination}` : currentLang === 'ko' ? `${day.destination} Gemini 꿀팁` : `Ask Gemini tips for ${day.destination}`}
+                      >
+                        <Sparkles className="w-3 h-3 text-indigo-600" />
+                        <span>{currentLang === 'vi' ? 'Hỏi Gemini Mẹo' : currentLang === 'ko' ? 'Gemini 꿀팁' : 'Gemini Tips'}</span>
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => openTravelokaModal('hotel', { cityId: day.destination.toLowerCase() })}
                         className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-bold border border-emerald-200 transition-colors flex items-center gap-1 cursor-pointer"
                         title={currentLang === 'vi' ? `Tìm khách sạn Traveloka tại ${day.destination}` : currentLang === 'ko' ? `${day.destination} 호텔 검색` : `Search hotels in ${day.destination}`}
@@ -953,6 +1280,117 @@ ${plan.days
           </div>
         )}
       </div>
+
+      {/* Day Advice Modal Powered by Google Gemini */}
+      {dayAdviceModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in"
+          onClick={() => setDayAdviceModal(null)}
+        >
+          <div
+            className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-indigo-200 relative animate-in zoom-in-95 max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center shadow-xs">
+                  <Sparkles className="w-5 h-5 text-amber-300" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-900">
+                    {currentLang === 'vi'
+                      ? `Gemini Tư Vấn: Ngày ${dayAdviceModal.day.dayNumber} - ${dayAdviceModal.day.destination}`
+                      : currentLang === 'ko'
+                      ? `Gemini 가이드: ${dayAdviceModal.day.dayNumber}일차 - ${dayAdviceModal.day.destination}`
+                      : `Gemini Advice: Day ${dayAdviceModal.day.dayNumber} - ${dayAdviceModal.day.destination}`}
+                  </h4>
+                  <span className="text-[10px] text-indigo-600 font-bold uppercase tracking-wider">
+                    Google Gemini 3.8 Flash • Smart Travel Assistant
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setDayAdviceModal(null)}
+                className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="py-4 overflow-y-auto flex-1 space-y-4">
+              {dayAdviceModal.isLoading ? (
+                <div className="py-12 text-center space-y-3">
+                  <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mx-auto" />
+                  <p className="text-xs font-bold text-slate-600">
+                    {currentLang === 'vi'
+                      ? 'Gemini đang phân tích điểm đến và chuẩn bị mẹo du lịch cho bạn...'
+                      : 'Gemini is evaluating destination insights...'}
+                  </p>
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100 text-xs text-slate-700 leading-relaxed space-y-2 whitespace-pre-wrap">
+                  {dayAdviceModal.advice}
+                </div>
+              )}
+
+              {/* User Follow-up Question Input */}
+              <div className="pt-2 border-t border-slate-100">
+                <label className="block text-[11px] font-bold text-slate-700 mb-1.5">
+                  💬 {currentLang === 'vi' ? 'Hỏi thêm Gemini về ngày này:' : currentLang === 'ko' ? 'Gemini에게 추가 질문하기:' : 'Ask Gemini a question about this day:'}
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={dayAdviceModal.question}
+                    onChange={(e) =>
+                      setDayAdviceModal((prev) => (prev ? { ...prev, question: e.target.value } : null))
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (dayAdviceModal.question.trim()) {
+                          handleOpenDayAdvice(dayAdviceModal.day, dayAdviceModal.question);
+                        }
+                      }
+                    }}
+                    placeholder={
+                      currentLang === 'vi'
+                        ? 'Ví dụ: "Nên mặc đồ gì?", "Quán cà phê đẹp gần đây?", "Lưu ý an toàn gì?"...'
+                        : 'e.g. "What outfit to wear?", "Best cafe nearby?", "Any safety tips?"...'
+                    }
+                    className="flex-1 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-indigo-400"
+                  />
+                  <button
+                    type="button"
+                    disabled={dayAdviceModal.isLoading || !dayAdviceModal.question.trim()}
+                    onClick={() => handleOpenDayAdvice(dayAdviceModal.day, dayAdviceModal.question)}
+                    className="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>{currentLang === 'vi' ? 'Hỏi' : 'Ask'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="pt-3 border-t border-slate-100 flex justify-end shrink-0">
+              <button
+                type="button"
+                onClick={() => setDayAdviceModal(null)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+              >
+                {currentLang === 'vi' ? 'Đóng' : currentLang === 'ko' ? '닫기' : 'Close'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

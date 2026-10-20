@@ -431,7 +431,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="flex items-center gap-3 text-left group cursor-pointer focus:outline-hidden shrink-0"
             >
               <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white p-1 border border-slate-200/90 shadow-md shadow-sky-900/5 flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
-                <AppLogo size="sm" showText={false} />
+                <img
+                  src="/logo-icon.png"
+                  alt="VIETNAM'S TRAVEL"
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div>
                 <div className="flex items-center gap-1.5">

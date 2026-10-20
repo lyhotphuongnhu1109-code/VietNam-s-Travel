@@ -614,23 +614,51 @@ export const TravelokaIntegrationModal: React.FC<TravelokaIntegrationModalProps>
                 </div>
               </div>
 
-              {/* Primary Call to Action: Direct Link to Traveloka */}
-              <div className="pt-2">
-                <a
-                  href={flightSearchUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#0194f3] to-[#007ce8] hover:from-[#0084dc] hover:to-[#006cc7] text-white font-black text-sm shadow-lg shadow-sky-200 flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+              {/* Primary Call to Action: Booking Actions */}
+              <div className="pt-2 space-y-2.5">
+                {/* NÚT 1: ĐẶT VÉ MÁY BAY TRỰC TIẾP TRONG APP */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeTravelokaModal();
+                    openBookingModal('flight', {
+                      originCode,
+                      destCode,
+                      date: departureDate,
+                      passengers: adults,
+                      seatClass,
+                      airline: preferredAirline !== 'all' ? preferredAirline : 'Vietnam Airlines',
+                    });
+                  }}
+                  className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 hover:from-emerald-700 hover:to-sky-700 text-white font-black text-sm sm:text-base shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
                 >
                   <Plane className="w-5 h-5 stroke-[2.5]" />
                   <span>
                     {currentLang === 'vi'
-                      ? `Tìm Chuyến Bay ${originCode} ➔ ${destCode} Trên Traveloka Ngay`
-                      : `Search Flights ${originCode} ➔ ${destCode} on Traveloka`}
+                      ? `Đặt Vé Máy Bay ${originCode} ➔ ${destCode} Ngay (Xuất Vé Trong App)`
+                      : `Book Flight ${originCode} ➔ ${destCode} Directly (In-App E-Ticket)`}
+                  </span>
+                  <CheckCircle2 className="w-4 h-4 ml-1 text-emerald-200" />
+                </button>
+
+                {/* NÚT 2: TÌM CHUYẾN BAY TRÊN TRAVELOKA */}
+                <a
+                  href={flightSearchUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => copyPromoCode('BAYVIETNAM50K')}
+                  className="w-full py-3 px-6 rounded-2xl bg-gradient-to-r from-[#0194f3] to-[#007ce8] hover:from-[#0084dc] hover:to-[#006cc7] text-white font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span>
+                    {currentLang === 'vi'
+                      ? `Mở Trang So Sánh Giá Vé ${originCode} ➔ ${destCode} Trên Traveloka`
+                      : `Open Traveloka Price Comparison ${originCode} ➔ ${destCode}`}
                   </span>
                   <ExternalLink className="w-4 h-4 ml-1" />
                 </a>
-                <p className="text-[11px] text-center text-slate-500 mt-2">
+
+                <p className="text-[11px] text-center text-slate-500">
                   {currentLang === 'vi'
                     ? '✓ Tự động điền lộ trình và ngày bay • Đảm bảo giá minh bạch không phí ẩn • Áp mã BAYVIETNAM50K'
                     : '✓ Auto pre-fills your route & dates • Transparent pricing with no hidden fees • Apply code BAYVIETNAM50K'}
@@ -1341,31 +1369,7 @@ export const TravelokaIntegrationModal: React.FC<TravelokaIntegrationModalProps>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {/* Nút 3: Mở cả 2 tab (Vé bay + Khách sạn) đồng thời */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        copyPromoCode('COMBOTRAVEL30');
-                        window.open(comboFlightUrl, '_blank', 'noopener,noreferrer');
-                        setTimeout(() => {
-                          window.open(comboHotelUrl, '_blank', 'noopener,noreferrer');
-                        }, 200);
-                      }}
-                      className="py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
-                    >
-                      <Sparkles className="w-4 h-4 text-slate-950" />
-                      <span>
-                        {currentLang === 'vi'
-                          ? '⚡ Mở Trọn Gói Cả Vé Bay & Khách Sạn (2 Tab Traveloka)'
-                          : currentLang === 'ko'
-                          ? '⚡ 왕복 항공권 & 호텔 2개 탭 동시 열기'
-                          : '⚡ Open Both Flight & Hotel Tabs on Traveloka'}
-                      </span>
-                      <ExternalLink className="w-3 h-3 ml-0.5" />
-                    </button>
-
-                    {/* Nút 4: Đặt giữ chỗ combo trong hệ thống */}
+                    {/* Nút 3: Đặt giữ chỗ combo trong hệ thống (xuất vé máy bay & phòng khách sạn) */}
                     <button
                       type="button"
                       onClick={() => {
@@ -1374,19 +1378,39 @@ export const TravelokaIntegrationModal: React.FC<TravelokaIntegrationModalProps>
                           originCode: comboOrigin,
                           destCode: comboDest,
                           date: comboDepDate,
+                          guests: comboGuests,
                         });
                       }}
-                      className="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 hover:text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer border border-slate-700"
+                      className="py-3 px-3 rounded-xl bg-gradient-to-r from-slate-900 to-indigo-950 hover:bg-slate-800 text-amber-300 hover:text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer border border-amber-400/40"
                     >
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                       <span>
                         {currentLang === 'vi'
-                          ? '📝 Đặt Giữ Chỗ Combo Nhanh (Lưu Vào Tài Khoản)'
+                          ? '📝 Đặt Giữ Chỗ Combo Tức Thì (Lưu Vé Vào App)'
                           : currentLang === 'ko'
-                          ? '📝 앱에서 콤보 바로 예약 (계정 연동)'
-                          : '📝 Book Combo In-App (Sync to Account)'}
+                          ? '📝 콤보 즉시 예약 (항공권 & 호텔 인앱 발권)'
+                          : '📝 Instant Combo Booking (Sync to App)'}
                       </span>
                     </button>
+
+                    {/* Nút 4: Mở thẳng cổng Traveloka Packages */}
+                    <a
+                      href={comboSearchUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => copyPromoCode('COMBOTRAVEL30')}
+                      className="py-3 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                    >
+                      <Sparkles className="w-4 h-4 text-slate-950 shrink-0" />
+                      <span>
+                        {currentLang === 'vi'
+                          ? '⚡ Mở Trang Combo Traveloka Packages'
+                          : currentLang === 'ko'
+                          ? '⚡ Traveloka 패키지 공식 페이지 열기'
+                          : '⚡ Open Traveloka Packages Portal'}
+                      </span>
+                      <ExternalLink className="w-3.5 h-3.5 ml-0.5 shrink-0" />
+                    </a>
                   </div>
                 </div>
 

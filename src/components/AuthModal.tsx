@@ -207,10 +207,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ currentLang }) => {
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center shadow-md overflow-hidden shrink-0">
               <img
-                src="/logo-icon.png?v=3"
-                onError={(e) => {
-                  e.currentTarget.src = "/logo.png?v=3";
-                }}
+                src="/logo-icon.png"
                 alt="VIETNAM'S TRAVEL"
                 className="w-full h-full object-contain rounded-lg"
                 referrerPolicy="no-referrer"

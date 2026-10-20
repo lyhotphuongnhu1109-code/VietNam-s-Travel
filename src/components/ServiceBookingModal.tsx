@@ -19,7 +19,7 @@ import {
   Gift,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { TRAVELOKA_POPULAR_COMBOS } from '../data/travelokaData';
+import { TRAVELOKA_POPULAR_COMBOS, TRAVELOKA_AIRPORTS } from '../data/travelokaData';
 import { Language } from '../types';
 
 interface ServiceBookingModalProps {
@@ -44,10 +44,46 @@ export const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({ curren
 
   const [activeType, setActiveType] = useState<'flight' | 'hotel' | 'combo' | 'tour'>(bookingModalType);
 
-  // Sync with prop
+  // Sync with prop & handle bookingModalInitialData
   React.useEffect(() => {
     setActiveType(bookingModalType);
-  }, [bookingModalType]);
+    if (bookingModalInitialData) {
+      if (bookingModalInitialData.originCode && bookingModalInitialData.destCode) {
+        const routeKey = `${bookingModalInitialData.originCode}-${bookingModalInitialData.destCode}`;
+        setFlightRoute(routeKey);
+      }
+      if (bookingModalInitialData.date) {
+        setDepartureDate(bookingModalInitialData.date);
+        setComboDepDate(bookingModalInitialData.date);
+        setCheckInDate(bookingModalInitialData.date);
+      }
+      if (bookingModalInitialData.airline) {
+        setAirline(bookingModalInitialData.airline);
+        setComboAirline(bookingModalInitialData.airline);
+      }
+      if (bookingModalInitialData.seatClass) {
+        setSeatClass(
+          bookingModalInitialData.seatClass.includes('BUSINESS')
+            ? 'Thương gia (Business)'
+            : 'Phổ thông (Economy)'
+        );
+      }
+      if (bookingModalInitialData.passengers) {
+        setFlightPassengers(bookingModalInitialData.passengers);
+        setComboGuests(bookingModalInitialData.passengers);
+      }
+      if (bookingModalInitialData.comboId) {
+        setSelectedComboId(bookingModalInitialData.comboId);
+      } else if (bookingModalInitialData.destCode) {
+        const foundCombo = TRAVELOKA_POPULAR_COMBOS.find(
+          (c) => c.destAirport === bookingModalInitialData.destCode
+        );
+        if (foundCombo) {
+          setSelectedComboId(foundCombo.id);
+        }
+      }
+    }
+  }, [bookingModalType, bookingModalInitialData]);
 
   // Flight form state
   const [airline, setAirline] = useState<'Vietnam Airlines' | 'Vietjet Air' | 'Bamboo Airways'>('Vietnam Airlines');
@@ -90,14 +126,53 @@ export const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({ curren
     points: number;
   } | null>(null);
 
-  // Predefined routes for flights
+  // Predefined routes for flights (comprehensive domestic network)
+  // Predefined routes for flights (comprehensive domestic network)
   const FLIGHT_ROUTES = [
     { id: 'HAN-DAD', nameVi: 'Hà Nội (HAN) ➔ Đà Nẵng (DAD)', origin: 'Hà Nội (Nội Bài - HAN)', originCode: 'HAN', dest: 'Đà Nẵng (Sân bay Đà Nẵng - DAD)', destCode: 'DAD', basePrice: 1700000 },
+    { id: 'SGN-DAD', nameVi: 'TP. Hồ Chí Minh (SGN) ➔ Đà Nẵng (DAD)', origin: 'TP. Hồ Chí Minh (SGN)', originCode: 'SGN', dest: 'Đà Nẵng (DAD)', destCode: 'DAD', basePrice: 1650000 },
     { id: 'HAN-SGN', nameVi: 'Hà Nội (HAN) ➔ TP. Hồ Chí Minh (SGN)', origin: 'Hà Nội (Nội Bài - HAN)', originCode: 'HAN', dest: 'TP. Hồ Chí Minh (Tân Sơn Nhất - SGN)', destCode: 'SGN', basePrice: 2100000 },
+    { id: 'SGN-HAN', nameVi: 'TP. Hồ Chí Minh (SGN) ➔ Hà Nội (HAN)', origin: 'TP. Hồ Chí Minh (Tân Sơn Nhất - SGN)', originCode: 'SGN', dest: 'Hà Nội (Nội Bài - HAN)', destCode: 'HAN', basePrice: 2100000 },
     { id: 'SGN-PQC', nameVi: 'TP. Hồ Chí Minh (SGN) ➔ Phú Quốc (PQC)', origin: 'TP. Hồ Chí Minh (Tân Sơn Nhất - SGN)', originCode: 'SGN', dest: 'Phú Quốc (Sân bay Phú Quốc - PQC)', destCode: 'PQC', basePrice: 1450000 },
+    { id: 'HAN-PQC', nameVi: 'Hà Nội (HAN) ➔ Phú Quốc (PQC)', origin: 'Hà Nội (Nội Bài - HAN)', originCode: 'HAN', dest: 'Phú Quốc (PQC)', destCode: 'PQC', basePrice: 2350000 },
     { id: 'HAN-CXR', nameVi: 'Hà Nội (HAN) ➔ Nha Trang / Cam Ranh (CXR)', origin: 'Hà Nội (Nội Bài - HAN)', originCode: 'HAN', dest: 'Nha Trang (Cam Ranh - CXR)', destCode: 'CXR', basePrice: 1850000 },
+    { id: 'SGN-CXR', nameVi: 'TP. Hồ Chí Minh (SGN) ➔ Nha Trang / Cam Ranh (CXR)', origin: 'TP. Hồ Chí Minh (SGN)', originCode: 'SGN', dest: 'Nha Trang (CXR)', destCode: 'CXR', basePrice: 1350000 },
+    { id: 'HAN-HUI', nameVi: 'Hà Nội (HAN) ➔ Cố Đô Huế (HUI)', origin: 'Hà Nội (Nội Bài - HAN)', originCode: 'HAN', dest: 'Huế (Phú Bài - HUI)', destCode: 'HUI', basePrice: 1650000 },
+    { id: 'SGN-HUI', nameVi: 'TP. Hồ Chí Minh (SGN) ➔ Cố Đô Huế (HUI)', origin: 'TP. Hồ Chí Minh (SGN)', originCode: 'SGN', dest: 'Huế (Phú Bài - HUI)', destCode: 'HUI', basePrice: 1550000 },
+    { id: 'HAN-DLI', nameVi: 'Hà Nội (HAN) ➔ Đà Lạt (DLI)', origin: 'Hà Nội (HAN)', originCode: 'HAN', dest: 'Đà Lạt (Liên Khương - DLI)', destCode: 'DLI', basePrice: 1950000 },
+    { id: 'SGN-DLI', nameVi: 'TP. Hồ Chí Minh (SGN) ➔ Đà Lạt (DLI)', origin: 'TP. Hồ Chí Minh (SGN)', originCode: 'SGN', dest: 'Đà Lạt (Liên Khương - DLI)', destCode: 'DLI', basePrice: 1250000 },
+    { id: 'HAN-UIH', nameVi: 'Hà Nội (HAN) ➔ Quy Nhơn (UIH)', origin: 'Hà Nội (HAN)', originCode: 'HAN', dest: 'Quy Nhơn (Phù Cát - UIH)', destCode: 'UIH', basePrice: 1750000 },
+    { id: 'SGN-UIH', nameVi: 'TP. Hồ Chí Minh (SGN) ➔ Quy Nhơn (UIH)', origin: 'TP. Hồ Chí Minh (SGN)', originCode: 'SGN', dest: 'Quy Nhơn (Phù Cát - UIH)', destCode: 'UIH', basePrice: 1400000 },
     { id: 'DAD-VCA', nameVi: 'Đà Nẵng (DAD) ➔ Cần Thơ (VCA)', origin: 'Đà Nẵng (DAD)', originCode: 'DAD', dest: 'Cần Thơ (Sân bay Cần Thơ - VCA)', destCode: 'VCA', basePrice: 1600000 },
+    { id: 'HAN-HPH', nameVi: 'Hà Nội / Hải Phòng (HPH) ➔ Hạ Long', origin: 'Hải Phòng (HPH)', originCode: 'HPH', dest: 'Đà Nẵng (DAD)', destCode: 'DAD', basePrice: 1550000 },
+    { id: 'SGN-VCS', nameVi: 'TP. Hồ Chí Minh (SGN) ➔ Côn Đảo (VCS)', origin: 'TP. Hồ Chí Minh (SGN)', originCode: 'SGN', dest: 'Côn Đảo (VCS)', destCode: 'VCS', basePrice: 2200000 },
+    { id: 'HAN-DIN', nameVi: 'Hà Nội (HAN) ➔ Điện Biên Phủ (DIN)', origin: 'Hà Nội (HAN)', originCode: 'HAN', dest: 'Điện Biên Phủ (DIN)', destCode: 'DIN', basePrice: 1500000 },
+    { id: 'HAN-BMV', nameVi: 'Hà Nội (HAN) ➔ Buôn Ma Thuột (BMV)', origin: 'Hà Nội (HAN)', originCode: 'HAN', dest: 'Buôn Ma Thuột (BMV)', destCode: 'BMV', basePrice: 1800000 },
   ];
+
+  // Dynamic route list supporting any airport pair requested via Traveloka or AI Itinerary
+  const effectiveFlightRoutes = React.useMemo(() => {
+    const list = [...FLIGHT_ROUTES];
+    if (bookingModalInitialData?.originCode && bookingModalInitialData?.destCode) {
+      const customId = `${bookingModalInitialData.originCode}-${bookingModalInitialData.destCode}`;
+      if (!list.some((r) => r.id === customId)) {
+        const orig = TRAVELOKA_AIRPORTS.find((a) => a.code === bookingModalInitialData.originCode);
+        const dst = TRAVELOKA_AIRPORTS.find((a) => a.code === bookingModalInitialData.destCode);
+        const origCity = orig ? orig.cityVi : bookingModalInitialData.originCode;
+        const dstCity = dst ? dst.cityVi : bookingModalInitialData.destCode;
+        list.unshift({
+          id: customId,
+          nameVi: `${origCity} (${bookingModalInitialData.originCode}) ➔ ${dstCity} (${bookingModalInitialData.destCode})`,
+          origin: orig ? `${orig.cityVi} (${orig.nameVi})` : bookingModalInitialData.originCode,
+          originCode: bookingModalInitialData.originCode,
+          dest: dst ? `${dst.cityVi} (${dst.nameVi})` : bookingModalInitialData.destCode,
+          destCode: bookingModalInitialData.destCode,
+          basePrice: 1750000,
+        });
+      }
+    }
+    return list;
+  }, [bookingModalInitialData]);
 
   // Predefined hotels
   const HOTEL_LIST = [
@@ -124,11 +199,12 @@ export const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({ curren
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num);
   };
 
-  // Require auth handler
+  // Require auth handler - with instant guest authorization fallback so booking never fails
   const ensureAuth = () => {
     if (!isAuthenticated) {
-      openAuthModal('register');
-      return false;
+      // Auto-initialize demo tourist profile so booking proceeds immediately
+      loginDemoUser();
+      return true;
     }
     return true;
   };
@@ -138,7 +214,7 @@ export const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({ curren
     e.preventDefault();
     if (!ensureAuth()) return;
 
-    const routeObj = FLIGHT_ROUTES.find((r) => r.id === flightRoute) || FLIGHT_ROUTES[0];
+    const routeObj = effectiveFlightRoutes.find((r) => r.id === flightRoute) || effectiveFlightRoutes[0];
     const multiplier = seatClass.includes('Thương gia') ? 2.2 : 1;
     const total = Math.round(routeObj.basePrice * multiplier * flightPassengers);
     const flightNum = airline === 'Vietnam Airlines' ? `VN ${Math.floor(100 + Math.random() * 800)}` : airline === 'Vietjet Air' ? `VJ ${Math.floor(200 + Math.random() * 700)}` : `QH ${Math.floor(300 + Math.random() * 600)}`;
