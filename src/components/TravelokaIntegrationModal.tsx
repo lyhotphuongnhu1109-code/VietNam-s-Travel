@@ -41,6 +41,8 @@ import {
   buildTravelokaHotelUrl,
   buildTravelokaComboUrl,
   buildTravelokaActivitiesUrl,
+  resolveDestinationAirport,
+  resolveDestinationCityId,
 } from '../data/travelokaData';
 import { KO_HOTELS, KO_PROMOS } from '../data/koreanTranslations';
 
@@ -55,6 +57,12 @@ export const TravelokaIntegrationModal: React.FC<TravelokaIntegrationModalProps>
     travelokaPrefill,
     closeTravelokaModal,
     openBookingModal,
+    addFlightBooking,
+    addHotelBooking,
+    currentUser,
+    isAuthenticated,
+    loginDemoUser,
+    openAccountModal,
   } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'flight' | 'hotel' | 'combo' | 'xperience' | 'promo' | 'app'>(
@@ -72,6 +80,45 @@ export const TravelokaIntegrationModal: React.FC<TravelokaIntegrationModalProps>
   const [isRoundTrip, setIsRoundTrip] = useState(false);
   const [originCode, setOriginCode] = useState(travelokaPrefill?.originCode || 'HAN');
   const [destCode, setDestCode] = useState(travelokaPrefill?.destCode || 'DAD');
+
+  // In-modal instant booking success state
+  const [inModalBookingSuccess, setInModalBookingSuccess] = useState<{
+    code: string;
+    type: 'flight' | 'combo' | 'hotel';
+    title: string;
+    detail: string;
+    points: number;
+    flightNumber?: string;
+    gate?: string;
+    seat?: string;
+  } | null>(null);
+
+  // Sync prefill values from context whenever modal opens or prefill changes
+  useEffect(() => {
+    if (travelokaPrefill) {
+      if (travelokaPrefill.originCode) {
+        setOriginCode(travelokaPrefill.originCode);
+        setComboOrigin(travelokaPrefill.originCode);
+      }
+      if (travelokaPrefill.destCode) {
+        setDestCode(travelokaPrefill.destCode);
+        setComboDest(travelokaPrefill.destCode);
+      }
+      if (travelokaPrefill.cityId) {
+        const resolvedCity = resolveDestinationCityId(travelokaPrefill.cityId);
+        setSelectedCityId(resolvedCity);
+        setXperienceCityFilter(resolvedCity);
+      }
+      if (travelokaPrefill.date) {
+        setDepartureDate(travelokaPrefill.date);
+        setComboDepDate(travelokaPrefill.date);
+        setCheckInDate(travelokaPrefill.date);
+        setXperienceDate(travelokaPrefill.date);
+      }
+    }
+    // Clear previous in-modal booking state on new open
+    setInModalBookingSuccess(null);
+  }, [travelokaPrefill, isTravelokaModalOpen]);
   const [departureDate, setDepartureDate] = useState(
     travelokaPrefill?.date || new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0]
   );
@@ -240,6 +287,112 @@ export const TravelokaIntegrationModal: React.FC<TravelokaIntegrationModalProps>
     guests: comboGuests,
     rooms: comboRooms,
   });
+
+  const handleInstantFlightBooking = () => {
+    if (!isAuthenticated) {
+      loginDemoUser();
+    }
+    const origAirport = TRAVELOKA_AIRPORTS.find((a) => a.code === originCode) || TRAVELOKA_AIRPORTS[0];
+    const dstAirport = TRAVELOKA_AIRPORTS.find((a) => a.code === destCode) || TRAVELOKA_AIRPORTS[2];
+    const selectedAir = preferredAirline !== 'all' ? preferredAirline : 'Vietnam Airlines';
+    const flightCode =
+      selectedAir === 'Vietnam Airlines'
+        ? `VN ${Math.floor(120 + Math.random() * 800)}`
+        : selectedAir === 'Vietjet Air'
+        ? `VJ ${Math.floor(210 + Math.random() * 700)}`
+        : `QH ${Math.floor(310 + Math.random() * 500)}`;
+    const baseP = 1750000;
+    const mult = seatClass === 'BUSINESS' ? 2.2 : seatClass === 'PREMIUM_ECONOMY' ? 1.5 : 1;
+    const totalVND = Math.round(baseP * mult * adults);
+
+    const booking = addFlightBooking({
+      airline: selectedAir,
+      flightNumber: flightCode,
+      origin: `${origAirport.cityVi} (${origAirport.nameVi})`,
+      originCode: origAirport.code,
+      destination: `${dstAirport.cityVi} (${dstAirport.nameVi})`,
+      destCode: dstAirport.code,
+      departureDate,
+      departureTime: '08:45',
+      arrivalTime: '10:15',
+      seatClass: seatClass === 'BUSINESS' ? 'Thương gia (Business)' : 'Phổ thông (Economy)',
+      passengers: adults,
+      passengerNames: [currentUser?.fullName || 'Hành khách du lịch'],
+      totalPriceVND: totalVND,
+      gate: `${Math.floor(1 + Math.random() * 12)}`,
+      seatNumber: `${Math.floor(10 + Math.random() * 25)}A`,
+    });
+
+    setInModalBookingSuccess({
+      code: booking.bookingCode,
+      type: 'flight',
+      title:
+        currentLang === 'vi'
+          ? `Đặt vé máy bay thành công: ${origAirport.cityVi} ➔ ${dstAirport.cityVi}`
+          : `Flight Ticket Issued: ${origAirport.cityVi} ➔ ${dstAirport.cityVi}`,
+      detail: `Chuyến bay ${flightCode} • Hãng ${selectedAir} • Ngày bay: ${departureDate} • ${adults} hành khách`,
+      points: Math.round(totalVND / 10000),
+      flightNumber: flightCode,
+      gate: booking.gate,
+      seat: booking.seatNumber,
+    });
+  };
+
+  const handleInstantComboBooking = () => {
+    if (!isAuthenticated) {
+      loginDemoUser();
+    }
+    const origAirport = TRAVELOKA_AIRPORTS.find((a) => a.code === comboOrigin) || TRAVELOKA_AIRPORTS[0];
+    const dstAirport = TRAVELOKA_AIRPORTS.find((a) => a.code === comboDest) || TRAVELOKA_AIRPORTS[2];
+    const totalVND = Math.round(3450000 * comboGuests);
+
+    const flBooking = addFlightBooking({
+      airline: 'Vietnam Airlines',
+      flightNumber: `VN ${Math.floor(150 + Math.random() * 600)}`,
+      origin: `${origAirport.cityVi} (${origAirport.code})`,
+      originCode: origAirport.code,
+      destination: `${dstAirport.cityVi} (${dstAirport.code})`,
+      destCode: dstAirport.code,
+      departureDate: comboDepDate,
+      departureTime: '08:30',
+      arrivalTime: '10:00',
+      seatClass: 'Phổ thông (Economy)',
+      passengers: comboGuests,
+      passengerNames: [currentUser?.fullName || 'Hành khách du lịch'],
+      totalPriceVND: Math.round(totalVND * 0.55),
+      gate: '07',
+      seatNumber: '14B',
+    });
+
+    addHotelBooking({
+      hotelName: `Khách sạn 4-5 sao trung tâm ${dstAirport.cityVi}`,
+      location: dstAirport.cityVi,
+      region: dstAirport.region,
+      checkInDate: comboDepDate,
+      checkOutDate: comboRetDate,
+      roomType: 'Phòng Deluxe Gói Combo (Buffet sáng)',
+      nights: 3,
+      guests: comboGuests,
+      guestName: currentUser?.fullName || 'Khách du lịch',
+      guestPhone: currentUser?.phone || '0912 345 678',
+      totalPriceVND: Math.round(totalVND * 0.45),
+      specialRequests: 'Gói combo du lịch trọn gói Traveloka',
+    });
+
+    setInModalBookingSuccess({
+      code: flBooking.bookingCode,
+      type: 'combo',
+      title:
+        currentLang === 'vi'
+          ? `Đặt Combo Vé Bay + Khách Sạn thành công tại ${dstAirport.cityVi}!`
+          : `Combo Package Booked for ${dstAirport.cityVi}!`,
+      detail: `Khứ hồi ${origAirport.cityVi} ⇄ ${dstAirport.cityVi} + Khách sạn 4-5 sao • ${comboGuests} khách • Tiết kiệm 30%`,
+      points: Math.round(totalVND / 10000),
+      flightNumber: flBooking.flightNumber,
+      gate: flBooking.gate,
+      seat: flBooking.seatNumber,
+    });
+  };
 
   const filteredComboCities = TRAVELOKA_HOTEL_CITIES.filter((c) => {
     const matchRegion = comboRegionFilter === 'all' || c.region === comboRegionFilter;
@@ -446,6 +599,88 @@ export const TravelokaIntegrationModal: React.FC<TravelokaIntegrationModalProps>
 
         {/* Content Body */}
         <div className="p-5 sm:p-6 overflow-y-auto space-y-5">
+          {/* In-Modal Instant Booking Success Card */}
+          {inModalBookingSuccess && (
+            <div className="p-5 rounded-3xl bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border-2 border-emerald-300 shadow-lg text-slate-800 space-y-3.5 animate-in zoom-in-95">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md">
+                    <CheckCircle2 className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
+                      ✓ Đã Xuất Vé Thành Công
+                    </span>
+                    <h4 className="text-base font-black text-slate-900 mt-0.5">
+                      {inModalBookingSuccess.title}
+                    </h4>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setInModalBookingSuccess(null)}
+                  className="text-slate-400 hover:text-slate-600 p-1 rounded-full cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-white border border-emerald-200/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div>
+                  <span className="text-slate-500 block text-[10px] uppercase font-bold">Mã vé điện tử (PNR)</span>
+                  <span className="text-base font-mono font-black text-sky-700">{inModalBookingSuccess.code}</span>
+                </div>
+                {inModalBookingSuccess.flightNumber && (
+                  <div>
+                    <span className="text-slate-500 block text-[10px] uppercase font-bold">Số hiệu chuyến bay</span>
+                    <span className="font-bold text-slate-800">{inModalBookingSuccess.flightNumber}</span>
+                  </div>
+                )}
+                {inModalBookingSuccess.seat && (
+                  <div>
+                    <span className="text-slate-500 block text-[10px] uppercase font-bold">Ghế</span>
+                    <span className="font-bold text-slate-800">{inModalBookingSuccess.seat}</span>
+                  </div>
+                )}
+                {inModalBookingSuccess.gate && (
+                  <div>
+                    <span className="text-slate-500 block text-[10px] uppercase font-bold">Cổng ra máy bay</span>
+                    <span className="font-bold text-slate-800">Gate {inModalBookingSuccess.gate}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 text-amber-800 font-bold border border-amber-200">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                  <span>+{inModalBookingSuccess.points} Điểm Sen Vàng</span>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {inModalBookingSuccess.detail} • Thông tin vé và thẻ lên máy bay điện tử đã được đồng bộ vào Không Gian Tài Khoản của bạn.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeTravelokaModal();
+                    openAccountModal(inModalBookingSuccess.type === 'flight' ? 'flights' : inModalBookingSuccess.type === 'hotel' ? 'hotels' : 'flights');
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Xem vé trong Không Gian Tài Khoản</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInModalBookingSuccess(null)}
+                  className="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all cursor-pointer"
+                >
+                  Đặt thêm vé / chặng khác
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* TAB 1: VÉ MÁY BAY */}
           {activeTab === 'flight' && (
             <div className="space-y-4">
@@ -616,47 +851,61 @@ export const TravelokaIntegrationModal: React.FC<TravelokaIntegrationModalProps>
 
               {/* Primary Call to Action: Booking Actions */}
               <div className="pt-2 space-y-2.5">
-                {/* NÚT 1: ĐẶT VÉ MÁY BAY TRỰC TIẾP TRONG APP */}
+                {/* NÚT 1: XUẤT VÉ MÁY BAY TỨC THÌ (IN-MODAL INSTANT TICKETING) */}
                 <button
                   type="button"
-                  onClick={() => {
-                    closeTravelokaModal();
-                    openBookingModal('flight', {
-                      originCode,
-                      destCode,
-                      date: departureDate,
-                      passengers: adults,
-                      seatClass,
-                      airline: preferredAirline !== 'all' ? preferredAirline : 'Vietnam Airlines',
-                    });
-                  }}
+                  onClick={handleInstantFlightBooking}
                   className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 hover:from-emerald-700 hover:to-sky-700 text-white font-black text-sm sm:text-base shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
                 >
                   <Plane className="w-5 h-5 stroke-[2.5]" />
                   <span>
                     {currentLang === 'vi'
-                      ? `Đặt Vé Máy Bay ${originCode} ➔ ${destCode} Ngay (Xuất Vé Trong App)`
-                      : `Book Flight ${originCode} ➔ ${destCode} Directly (In-App E-Ticket)`}
+                      ? `⚡ Đặt & Xuất Vé Máy Bay ${originCode} ➔ ${destCode} Tức Thì (Lưu Vé Vào App)`
+                      : `⚡ Instant Flight Ticket ${originCode} ➔ ${destCode} (Sync to App)`}
                   </span>
                   <CheckCircle2 className="w-4 h-4 ml-1 text-emerald-200" />
                 </button>
 
-                {/* NÚT 2: TÌM CHUYẾN BAY TRÊN TRAVELOKA */}
-                <a
-                  href={flightSearchUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => copyPromoCode('BAYVIETNAM50K')}
-                  className="w-full py-3 px-6 rounded-2xl bg-gradient-to-r from-[#0194f3] to-[#007ce8] hover:from-[#0084dc] hover:to-[#006cc7] text-white font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
-                >
-                  <Sparkles className="w-4 h-4 text-amber-300" />
-                  <span>
-                    {currentLang === 'vi'
-                      ? `Mở Trang So Sánh Giá Vé ${originCode} ➔ ${destCode} Trên Traveloka`
-                      : `Open Traveloka Price Comparison ${originCode} ➔ ${destCode}`}
-                  </span>
-                  <ExternalLink className="w-4 h-4 ml-1" />
-                </a>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {/* NÚT 2: TÌM & ĐẶT VÉ TRÊN TRAVELOKA WEB */}
+                  <a
+                    href={flightSearchUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => copyPromoCode('BAYVIETNAM50K')}
+                    className="py-3 px-4 rounded-xl bg-gradient-to-r from-[#0194f3] to-[#007ce8] hover:from-[#0084dc] hover:to-[#006cc7] text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                  >
+                    <Sparkles className="w-4 h-4 text-amber-300 shrink-0" />
+                    <span className="truncate">
+                      {currentLang === 'vi'
+                        ? `So Sánh Giá Vé ${originCode} ➔ ${destCode} Trên Traveloka`
+                        : `Compare on Traveloka (${originCode} ➔ ${destCode})`}
+                    </span>
+                    <ExternalLink className="w-3.5 h-3.5 shrink-0 ml-0.5" />
+                  </a>
+
+                  {/* NÚT 3: MỞ FORM ĐẶT CHI TIẾT */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeTravelokaModal();
+                      openBookingModal('flight', {
+                        originCode,
+                        destCode,
+                        date: departureDate,
+                        passengers: adults,
+                        seatClass,
+                        airline: preferredAirline !== 'all' ? preferredAirline : 'Vietnam Airlines',
+                      });
+                    }}
+                    className="py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer border border-slate-700"
+                  >
+                    <Ticket className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span className="truncate">
+                      {currentLang === 'vi' ? 'Điền Tên & Chọn Ghế Chi Tiết' : 'Custom Passenger Details'}
+                    </span>
+                  </button>
+                </div>
 
                 <p className="text-[11px] text-center text-slate-500">
                   {currentLang === 'vi'
@@ -1372,24 +1621,16 @@ export const TravelokaIntegrationModal: React.FC<TravelokaIntegrationModalProps>
                     {/* Nút 3: Đặt giữ chỗ combo trong hệ thống (xuất vé máy bay & phòng khách sạn) */}
                     <button
                       type="button"
-                      onClick={() => {
-                        closeTravelokaModal();
-                        openBookingModal('combo', {
-                          originCode: comboOrigin,
-                          destCode: comboDest,
-                          date: comboDepDate,
-                          guests: comboGuests,
-                        });
-                      }}
+                      onClick={handleInstantComboBooking}
                       className="py-3 px-3 rounded-xl bg-gradient-to-r from-slate-900 to-indigo-950 hover:bg-slate-800 text-amber-300 hover:text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer border border-amber-400/40"
                     >
                       <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                       <span>
                         {currentLang === 'vi'
-                          ? '📝 Đặt Giữ Chỗ Combo Tức Thì (Lưu Vé Vào App)'
+                          ? '⚡ Xuất Vé & Giữ Chỗ Combo Tức Thì'
                           : currentLang === 'ko'
-                          ? '📝 콤보 즉시 예약 (항공권 & 호텔 인앱 발권)'
-                          : '📝 Instant Combo Booking (Sync to App)'}
+                          ? '⚡ 콤보 즉시 발권 (항공권 & 호텔)'
+                          : '⚡ Instant Combo Ticketing'}
                       </span>
                     </button>
 

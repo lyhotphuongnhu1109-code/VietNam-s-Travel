@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { Language } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { resolveDestinationAirport, resolveDestinationCityId } from '../data/travelokaData';
 
 export interface AiCustomDay {
   dayNumber: number;
@@ -309,7 +310,7 @@ const INITIAL_PLANS: Record<Language, AiCustomItinerary> = {
 };
 
 export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ currentLang }) => {
-  const { openTravelokaModal } = useAuth();
+  const { openTravelokaModal, openBookingModal } = useAuth();
 
   // AI Itinerary Generator State
   const [customPrompt, setCustomPrompt] = useState('');
@@ -966,47 +967,163 @@ ${plan.days
                   )}
                 </button>
 
-                {/* Traveloka Booking CTA for AI plan */}
+                {/* Traveloka Flight Booking CTA for AI plan */}
                 <button
                   type="button"
                   onClick={() => {
                     const firstDayDest = aiCustomPlan.days[0]?.destination || 'Đà Nẵng';
-                    const airportMap: Record<string, string> = {
-                      'Hà Nội': 'HAN',
-                      'Hạ Long': 'HPH',
-                      'Sa Pa': 'HAN',
-                      'Hà Giang': 'HAN',
-                      'Đà Nẵng': 'DAD',
-                      'Hội An': 'DAD',
-                      'Huế': 'HUI',
-                      'Nha Trang': 'CXR',
-                      'Đà Lạt': 'DLI',
-                      'Quy Nhơn': 'UIH',
-                      'TP. Hồ Chí Minh': 'SGN',
-                      'Phú Quốc': 'PQC',
-                      'Cần Thơ': 'VCA',
-                    };
-                    const matchCode =
-                      Object.entries(airportMap).find(([k]) => firstDayDest.includes(k))?.[1] || 'DAD';
-                    const originCode = matchCode === 'HAN' ? 'SGN' : 'HAN';
-                    openTravelokaModal('combo', { originCode, destCode: matchCode });
+                    const targetAirport = resolveDestinationAirport(firstDayDest);
+                    const originCode = targetAirport.code === 'HAN' ? 'SGN' : 'HAN';
+                    openTravelokaModal('flight', {
+                      originCode,
+                      destCode: targetAirport.code,
+                      cityId: targetAirport.cityId,
+                    });
                   }}
-                  className="px-4 py-3 rounded-2xl bg-gradient-to-r from-[#0194f3] to-[#007ce8] hover:from-[#0082d6] hover:to-[#0064d2] text-white text-xs font-black transition-all shadow-md hover:scale-102 flex items-center justify-center gap-2.5 cursor-pointer border border-white/20"
+                  className="px-4 py-3 rounded-2xl bg-gradient-to-r from-[#0194f3] to-[#007ce8] hover:from-[#0082d6] hover:to-[#0064d2] text-white text-xs font-black transition-all shadow-md hover:scale-102 flex items-center justify-center gap-2 cursor-pointer border border-white/20"
+                  title="Đặt vé máy bay Traveloka"
                 >
                   <Plane className="w-4 h-4 text-white" />
                   <div className="text-left">
                     <span className="block leading-tight font-extrabold text-white">
                       {currentLang === 'vi'
-                        ? 'Đặt Vé & Phòng Traveloka'
+                        ? 'Đặt Vé Máy Bay Traveloka'
                         : currentLang === 'ko'
-                        ? 'Traveloka 항공 & 호텔 예약'
-                        : 'Book on Traveloka'}
+                        ? 'Traveloka 항공권 예약'
+                        : 'Traveloka Flights'}
                     </span>
                     <span className="text-[10px] text-amber-300 font-bold block">
-                      {currentLang === 'vi' ? 'Ưu đãi combo giảm tới 30%' : currentLang === 'ko' ? '콤보 최대 30% 할인' : 'Save up to 30% combo'}
+                      {currentLang === 'vi' ? 'Giá rẻ từ 580k • Xuất vé tức thì' : currentLang === 'ko' ? '최저가 보장 • 실시간 발권' : 'Best fares from 580k'}
                     </span>
                   </div>
                 </button>
+
+                {/* Traveloka Combo Booking CTA */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const firstDayDest = aiCustomPlan.days[0]?.destination || 'Đà Nẵng';
+                    const targetAirport = resolveDestinationAirport(firstDayDest);
+                    const originCode = targetAirport.code === 'HAN' ? 'SGN' : 'HAN';
+                    openTravelokaModal('combo', {
+                      originCode,
+                      destCode: targetAirport.code,
+                      cityId: targetAirport.cityId,
+                    });
+                  }}
+                  className="px-4 py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 text-xs font-black transition-all shadow-md hover:scale-102 flex items-center justify-center gap-2 cursor-pointer border border-amber-300/40"
+                  title="Đặt combo vé máy bay + khách sạn giảm tới 30%"
+                >
+                  <Sparkles className="w-4 h-4 text-slate-950" />
+                  <div className="text-left">
+                    <span className="block leading-tight font-extrabold text-slate-950">
+                      {currentLang === 'vi'
+                        ? 'Combo Vé + Phòng (-30%)'
+                        : currentLang === 'ko'
+                        ? '항공+호텔 콤보 (-30%)'
+                        : 'Flight + Hotel Combo'}
+                    </span>
+                    <span className="text-[10px] text-slate-900 font-bold block">
+                      {currentLang === 'vi' ? 'Tiết kiệm tới 1.5 triệu/người' : currentLang === 'ko' ? '패키지 특가 할인' : 'Save up to 30% bundle'}
+                    </span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Traveloka Integrated Ticket & Hotel Booking Banner */}
+            <div className="mt-5 p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-sky-50 via-blue-50 to-indigo-50 border border-sky-200/90 shadow-sm">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#0194f3] to-[#0060b8] text-white flex items-center justify-center shadow-md shadow-sky-500/20 shrink-0">
+                    <Plane className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="px-2 py-0.5 rounded-full bg-[#0194f3] text-white text-[10px] font-black uppercase tracking-wider">
+                        Traveloka Partner
+                      </span>
+                      <span className="text-xs font-black text-slate-900">
+                        {currentLang === 'vi'
+                          ? `Đặt Vé Cho Lộ Trình: Đến ${aiCustomPlan.days[0]?.destination || 'Điểm đến'}`
+                          : `Book Tickets for this Itinerary: ${aiCustomPlan.days[0]?.destination || 'Destination'}`}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-600 mt-0.5">
+                      {currentLang === 'vi'
+                        ? 'So sánh giá vé Vietnam Airlines, Vietjet, Bamboo • Xuất vé điện tử tức thì • Giảm thêm mã BAYVIETNAM50K'
+                        : 'Compare real-time fares from Vietnam Airlines, Vietjet, Bamboo • Instant E-ticket delivery'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const firstDayDest = aiCustomPlan.days[0]?.destination || 'Đà Nẵng';
+                      const targetAirport = resolveDestinationAirport(firstDayDest);
+                      const originCode = targetAirport.code === 'HAN' ? 'SGN' : 'HAN';
+                      openTravelokaModal('flight', {
+                        originCode,
+                        destCode: targetAirport.code,
+                        cityId: targetAirport.cityId,
+                      });
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-[#0194f3] hover:bg-[#0082d6] text-white text-xs font-black flex items-center gap-1.5 shadow-sm transition-all cursor-pointer hover:scale-102"
+                  >
+                    <Plane className="w-3.5 h-3.5" />
+                    <span>{currentLang === 'vi' ? 'Đặt Vé Bay' : currentLang === 'ko' ? '항공권 예약' : 'Book Flight'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const firstDayDest = aiCustomPlan.days[0]?.destination || 'Đà Nẵng';
+                      const targetAirport = resolveDestinationAirport(firstDayDest);
+                      const originCode = targetAirport.code === 'HAN' ? 'SGN' : 'HAN';
+                      openTravelokaModal('combo', {
+                        originCode,
+                        destCode: targetAirport.code,
+                        cityId: targetAirport.cityId,
+                      });
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-sm transition-all cursor-pointer hover:scale-102"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-slate-950" />
+                    <span>{currentLang === 'vi' ? 'Combo Vé + Phòng -30%' : currentLang === 'ko' ? '콤보 -30%' : 'Combo -30%'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const firstDayDest = aiCustomPlan.days[0]?.destination || 'Đà Nẵng';
+                      const cityId = resolveDestinationCityId(firstDayDest);
+                      openTravelokaModal('hotel', { cityId });
+                    }}
+                    className="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold border border-slate-200 flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                  >
+                    <Home className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>{currentLang === 'vi' ? 'Khách Sạn' : currentLang === 'ko' ? '호텔 예약' : 'Hotels'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const firstDayDest = aiCustomPlan.days[0]?.destination || 'Đà Nẵng';
+                      const targetAirport = resolveDestinationAirport(firstDayDest);
+                      const originCode = targetAirport.code === 'HAN' ? 'SGN' : 'HAN';
+                      openBookingModal('flight', {
+                        originCode,
+                        destCode: targetAirport.code,
+                      });
+                    }}
+                    className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-200" />
+                    <span>{currentLang === 'vi' ? 'Xuất Vé Trong App' : currentLang === 'ko' ? '인앱 발권' : 'In-App Pass'}</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1225,7 +1342,27 @@ ${plan.days
                       </button>
                       <button
                         type="button"
-                        onClick={() => openTravelokaModal('hotel', { cityId: day.destination.toLowerCase() })}
+                        onClick={() => {
+                          const airport = resolveDestinationAirport(day.destination);
+                          const origin = airport.code === 'HAN' ? 'SGN' : 'HAN';
+                          openTravelokaModal('flight', {
+                            originCode: origin,
+                            destCode: airport.code,
+                            cityId: airport.cityId,
+                          });
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 text-[11px] font-bold border border-sky-200 transition-colors flex items-center gap-1 cursor-pointer"
+                        title={currentLang === 'vi' ? `Đặt vé máy bay / di chuyển tới ${day.destination} trên Traveloka` : `Book flight to ${day.destination} on Traveloka`}
+                      >
+                        <Plane className="w-3 h-3 text-sky-600" />
+                        <span>{currentLang === 'vi' ? 'Vé Máy Bay' : currentLang === 'ko' ? '항공권 예약' : 'Book Flight'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const cityId = resolveDestinationCityId(day.destination);
+                          openTravelokaModal('hotel', { cityId });
+                        }}
                         className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-bold border border-emerald-200 transition-colors flex items-center gap-1 cursor-pointer"
                         title={currentLang === 'vi' ? `Tìm khách sạn Traveloka tại ${day.destination}` : currentLang === 'ko' ? `${day.destination} 호텔 검색` : `Search hotels in ${day.destination}`}
                       >
@@ -1234,7 +1371,10 @@ ${plan.days
                       </button>
                       <button
                         type="button"
-                        onClick={() => openTravelokaModal('xperience', { cityId: day.destination.toLowerCase() })}
+                        onClick={() => {
+                          const cityId = resolveDestinationCityId(day.destination);
+                          openTravelokaModal('xperience', { cityId });
+                        }}
                         className="px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 text-[11px] font-bold border border-purple-200 transition-colors flex items-center gap-1 cursor-pointer"
                         title={currentLang === 'vi' ? `Tìm vé tham quan & tour tại ${day.destination}` : currentLang === 'ko' ? `${day.destination} 명소 입장권 검색` : `Search attractions in ${day.destination}`}
                       >

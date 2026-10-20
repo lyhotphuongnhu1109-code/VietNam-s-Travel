@@ -40,6 +40,7 @@ export const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({ curren
     addHotelBooking,
     addTourBooking,
     openTravelokaModal,
+    loginDemoUser,
   } = useAuth();
 
   const [activeType, setActiveType] = useState<'flight' | 'hotel' | 'combo' | 'tour'>(bookingModalType);
@@ -602,7 +603,7 @@ export const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({ curren
                       onChange={(e) => setFlightRoute(e.target.value)}
                       className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:border-sky-500 font-medium"
                     >
-                      {FLIGHT_ROUTES.map((r) => (
+                      {effectiveFlightRoutes.map((r) => (
                         <option key={r.id} value={r.id}>
                           {r.nameVi} — Từ {formatVND(r.basePrice)}
                         </option>
