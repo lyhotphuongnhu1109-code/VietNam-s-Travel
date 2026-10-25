@@ -4,6 +4,7 @@ import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
+import { synthesizeTailoredItinerary, WishParams } from "./src/data/itinerarySynthesizer";
 
 dotenv.config();
 
@@ -375,157 +376,207 @@ function generateFallbackItinerary(prompt: string, language: string, duration: s
   };
 }
 
-// AI Custom Itinerary Generator API
+// Helper to extract structured wishes from prompt and body
+function extractWishFromRequest(body: any): WishParams {
+  const p = (body.prompt || "").toLowerCase();
+  
+  // Destination
+  let destination = body.destination;
+  if (!destination || typeof destination !== "string" || !destination.trim()) {
+    if (p.includes("đà lạt") || p.includes("da lat")) destination = "Đà Lạt";
+    else if (p.includes("phú quốc") || p.includes("phu quoc")) destination = "Phú Quốc";
+    else if (p.includes("nha trang")) destination = "Nha Trang";
+    else if (p.includes("đà nẵng") || p.includes("da nang") || p.includes("hội an") || p.includes("bà nà")) destination = "Đà Nẵng - Hội An";
+    else if (p.includes("sa pa") || p.includes("sapa") || p.includes("fansipan")) destination = "Sa Pa";
+    else if (p.includes("ninh bình") || p.includes("tràng an")) destination = "Hà Nội - Ninh Bình";
+    else if (p.includes("hà nội") || p.includes("hanoi")) destination = "Hà Nội";
+    else if (p.includes("hạ long") || p.includes("vịnh hạ long")) destination = "Hạ Long";
+    else if (p.includes("miền tây") || p.includes("cần thơ") || p.includes("bến tre")) destination = "Miền Tây - Cần Thơ";
+    else if (p.includes("hà giang") || p.includes("mã pí lèng")) destination = "Hà Giang";
+    else if (p.includes("huế") || p.includes("cố đô")) destination = "Cố Đô Huế";
+    else if (p.includes("quy nhơn") || p.includes("phú yên")) destination = "Quy Nhơn - Phú Yên";
+    else destination = "Đà Lạt";
+  }
+
+  // Duration
+  let durationDays = body.durationDays ? Number(body.durationDays) : 0;
+  if (!durationDays || isNaN(durationDays)) {
+    const daysMatch = p.match(/(\d+)\s*(ngày|ngay|days|일)/);
+    if (daysMatch && daysMatch[1]) {
+      durationDays = parseInt(daysMatch[1], 10);
+    } else if (body.duration === "1-3") {
+      durationDays = 3;
+    } else if (body.duration === "10-14") {
+      durationDays = 7;
+    } else {
+      durationDays = 4;
+    }
+  }
+  durationDays = Math.min(Math.max(durationDays, 2), 7);
+
+  // Companion
+  let companion = body.companion;
+  if (!companion) {
+    if (p.includes("người yêu") || p.includes("vợ chồng") || p.includes("cặp đôi") || p.includes("trăng mật")) companion = "couple";
+    else if (p.includes("trẻ nhỏ") || p.includes("con nhỏ") || p.includes("bé")) companion = "family_kids";
+    else if (p.includes("bố mẹ") || p.includes("ông bà") || p.includes("người lớn tuổi") || p.includes("người già")) companion = "family_seniors";
+    else if (p.includes("bạn") || p.includes("nhóm") || p.includes("phượt")) companion = "friends";
+    else if (p.includes("một mình") || p.includes("solo")) companion = "solo";
+    else companion = "couple";
+  }
+
+  // Interests
+  const interests: string[] = Array.isArray(body.interests) ? body.interests : [];
+  if (p.includes("ăn") || p.includes("hải sản") || p.includes("đặc sản") || p.includes("ẩm thực")) {
+    if (!interests.includes("food")) interests.push("food");
+  }
+  if (p.includes("ảnh") || p.includes("sống ảo") || p.includes("cafe") || p.includes("cà phê")) {
+    if (!interests.includes("photo")) interests.push("photo");
+  }
+  if (p.includes("biển") || p.includes("lặn") || p.includes("san hô") || p.includes("đảo")) {
+    if (!interests.includes("beach")) interests.push("beach");
+  }
+  if (p.includes("di sản") || p.includes("lịch sử") || p.includes("chùa") || p.includes("văn hóa")) {
+    if (!interests.includes("culture")) interests.push("culture");
+  }
+  if (p.includes("mây") || p.includes("đèo") || p.includes("trekking") || p.includes("núi")) {
+    if (!interests.includes("nature")) interests.push("nature");
+  }
+
+  return {
+    destination: destination.trim(),
+    departureCity: body.departureCity || "TP. Hồ Chí Minh (SGN)",
+    durationDays,
+    companion,
+    interests,
+    budgetTier: body.budgetTier || body.budget || "standard",
+    specialNotes: body.specialNotes || body.prompt || "",
+    language: body.language || "vi",
+  };
+}
+
+// AI Custom Itinerary Generator API - Rock-Solid & Tailored to User Wishes
 app.post("/api/gemini/itinerary", async (req, res) => {
+  const wish = extractWishFromRequest(req.body);
+  const language = req.body.language || "vi";
+
+  const ai = getGemini();
+  if (!ai) {
+    const tailoredPlan = synthesizeTailoredItinerary(wish);
+    return res.json({ itinerary: tailoredPlan, fallback: true, source: "ai_synthesizer" });
+  }
+
   try {
-    const {
-      prompt,
-      language = "vi",
-      duration = "4-7",
-      travelStyle = "balanced",
-      budget = "standard",
-    } = req.body;
-
-    if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
-      return res.status(400).json({ error: "Missing or invalid prompt parameter" });
-    }
-
-    const ai = getGemini();
-    if (!ai) {
-      const fallbackItinerary = generateFallbackItinerary(prompt, language, duration);
-      return res.json({ itinerary: fallbackItinerary, fallback: true });
-    }
-
     const targetLangName =
       language === "ko" ? "Korean (한국어)" : language === "en" ? "English" : "Vietnamese (Tiếng Việt)";
 
     const systemInstruction = `You are the Senior Master Travel Planner and Cultural Ambassador for "VIETNAM'S TRAVEL" platform.
-Your mission is to generate a realistic, rich, inspiring day-by-day travel itinerary in Vietnam tailored precisely to the user's custom travel needs.
-User's request: "${prompt}".
-Preferred duration category: ${duration}.
-Preferred travel style: ${travelStyle}.
-Preferred budget level: ${budget}.
+Your mission is to generate a realistic, tailored, and inspiring day-by-day travel itinerary in Vietnam matching the user's exact travel wishes:
+- Destination: ${wish.destination}
+- Departure City: ${wish.departureCity}
+- Duration: ${wish.durationDays} Days (${wish.durationDays - 1} Nights)
+- Traveling with: ${wish.companion}
+- Travel Interests: ${wish.interests?.join(", ") || "Authentic sightseeing and dining"}
+- Budget tier: ${wish.budgetTier}
+- User's special prompt/notes: "${wish.specialNotes}"
 
-Strict Rules:
-1. Return valid JSON only, strictly matching the required schema.
-2. All descriptions, sightseeing spots, meals, and advice must be written in natural ${targetLangName}.
-3. Create realistic day-by-day itineraries (usually between 2 to 7 days, matching what the user requested in their prompt).
-4. For every day, include realistic authentic Vietnamese cuisine specialties, exact tourist sights, optimal transportation, and accommodation advice.
-5. Provide realistic budget estimates in VNĐ for each day and the total trip.
-6. Provide inspiring and practical highlights.`;
+Strict Output Requirements:
+1. Return valid JSON only, strictly conforming to the requested schema. Do not enclose in markdown code fences if possible.
+2. All descriptions, sightseeing spots, meals, and advice must be written in natural, engaging ${targetLangName}.
+3. Create EXACTLY ${wish.durationDays} days in the "days" array.
+4. Day 1 starts with journey from ${wish.departureCity} to ${wish.destination}.
+5. Day ${wish.durationDays} ends with departure back to ${wish.departureCity}.
+6. For every single day, provide authentic Vietnamese culinary specialties, exact sights, realistic transport, and accommodation style.
+7. Provide realistic budget estimates in VNĐ for each day and total trip spend.`;
 
-    const promptText = `Generate a complete tailored travel itinerary in Vietnam for: "${prompt}".
+    const promptText = `Generate a tailored ${wish.durationDays}-day itinerary for ${wish.destination} departing from ${wish.departureCity}.
 Output strictly valid JSON with this exact schema:
 {
-  "id": "custom-ai-${Date.now()}",
+  "id": "gemini-${Date.now()}",
   "title": "Inspiring and catchy title for this trip",
-  "durationLabel": "e.g. 4 Ngày 3 Đêm or 4 Days 3 Nights",
-  "overview": "2-3 sentences overview describing this custom journey",
-  "budgetLevel": "Tiết kiệm / Tiêu chuẩn / Cao cấp",
-  "estimatedCostTotal": "Total spend estimate, e.g. 5.200.000 VNĐ - 7.000.000 VNĐ / người",
-  "bestTime": "Best time to visit, e.g. Tháng 3 - Tháng 8",
-  "specialTip": "1-2 practical insider tips for this specific route",
+  "durationLabel": "${wish.durationDays} Ngày ${wish.durationDays - 1} Đêm",
+  "overview": "2-3 sentences overview describing this custom journey tailored to the user",
+  "budgetLevel": "${wish.budgetTier === 'budget' ? 'Tiết kiệm' : wish.budgetTier === 'luxury' ? 'Cao cấp' : 'Tiêu chuẩn'}",
+  "estimatedCostTotal": "Total spend estimate in VNĐ, e.g. 4.500.000 VNĐ - 6.000.000 VNĐ / người",
+  "bestTime": "Best time of year to visit ${wish.destination}",
+  "specialTip": "Practical insider tip for this route",
   "days": [
     {
       "dayNumber": 1,
-      "destination": "City or destination name",
-      "budgetEstimate": "Daily budget estimate in VNĐ",
+      "destination": "Day 1 destination name",
+      "budgetEstimate": "Daily budget in VNĐ",
       "highlights": ["highlight 1", "highlight 2", "highlight 3"],
       "morning": "Detailed morning activity + breakfast",
       "afternoon": "Detailed afternoon sightseeing + lunch",
       "evening": "Detailed evening activity + dinner",
-      "transport": "Specific transport mode (taxi, xe máy, máy bay, tàu hỏa...)",
-      "stay": "Recommended hotel / homestay style and area"
+      "transport": "Specific transport mode (máy bay, xe đưa đón, taxi...)",
+      "stay": "Recommended hotel / resort area"
     }
   ]
 }`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.8-flash",
-      contents: promptText,
-      config: {
-        systemInstruction,
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            id: { type: Type.STRING },
-            title: { type: Type.STRING },
-            durationLabel: { type: Type.STRING },
-            overview: { type: Type.STRING },
-            budgetLevel: { type: Type.STRING },
-            estimatedCostTotal: { type: Type.STRING },
-            bestTime: { type: Type.STRING },
-            specialTip: { type: Type.STRING },
-            days: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  dayNumber: { type: Type.INTEGER },
-                  destination: { type: Type.STRING },
-                  budgetEstimate: { type: Type.STRING },
-                  highlights: {
-                    type: Type.ARRAY,
-                    items: { type: Type.STRING },
-                  },
-                  morning: { type: Type.STRING },
-                  afternoon: { type: Type.STRING },
-                  evening: { type: Type.STRING },
-                  transport: { type: Type.STRING },
-                  stay: { type: Type.STRING },
-                },
-                required: [
-                  "dayNumber",
-                  "destination",
-                  "budgetEstimate",
-                  "highlights",
-                  "morning",
-                  "afternoon",
-                  "evening",
-                  "transport",
-                  "stay",
-                ],
-              },
-            },
-          },
-          required: [
-            "id",
-            "title",
-            "durationLabel",
-            "overview",
-            "budgetLevel",
-            "estimatedCostTotal",
-            "days",
-          ],
+    // Dual model cascade: Try gemini-3.8-flash, then gemini-3.1-flash-lite, then high-precision synthesizer
+    let response: any = null;
+    try {
+      const geminiCall = ai.models.generateContent({
+        model: "gemini-3.8-flash",
+        contents: promptText,
+        config: {
+          systemInstruction,
+          responseMimeType: "application/json",
+          temperature: 0.7,
         },
-        temperature: 0.7,
-      },
-    });
+      });
+      const timeoutCall = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Gemini 3.8 timeout")), 18000)
+      );
+      response = await Promise.race([geminiCall, timeoutCall]);
+    } catch (primaryErr: any) {
+      console.warn("Primary gemini-3.8-flash busy/timeout, trying gemini-3.1-flash-lite:", primaryErr?.message);
+      try {
+        const fallbackCall = ai.models.generateContent({
+          model: "gemini-3.1-flash-lite",
+          contents: promptText,
+          config: {
+            systemInstruction,
+            responseMimeType: "application/json",
+            temperature: 0.7,
+          },
+        });
+        const timeoutCall2 = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Gemini 3.1 timeout")), 12000)
+        );
+        response = await Promise.race([fallbackCall, timeoutCall2]);
+      } catch (secErr: any) {
+        console.warn("Secondary model also busy, using high-precision synthesizer:", secErr?.message);
+      }
+    }
 
     let itineraryData = null;
-    try {
-      if (response.text) {
-        itineraryData = JSON.parse(response.text.trim());
+    if (response && response.text) {
+      let rawText = response.text.trim();
+      if (rawText.startsWith("```json")) {
+        rawText = rawText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+      } else if (rawText.startsWith("```")) {
+        rawText = rawText.replace(/^```\s*/, "").replace(/\s*```$/, "");
       }
-    } catch (parseErr) {
-      console.warn("JSON parse error from Gemini response, using fallback:", parseErr);
+      try {
+        itineraryData = JSON.parse(rawText);
+      } catch (jsonErr) {
+        console.warn("JSON parse error:", jsonErr);
+      }
     }
 
     if (!itineraryData || !Array.isArray(itineraryData.days) || itineraryData.days.length === 0) {
-      itineraryData = generateFallbackItinerary(prompt, language, duration);
-      return res.json({ itinerary: itineraryData, fallback: true });
+      const tailoredPlan = synthesizeTailoredItinerary(wish);
+      return res.json({ itinerary: tailoredPlan, fallback: true, source: "ai_synthesizer" });
     }
 
-    return res.json({ itinerary: itineraryData, fallback: false });
+    return res.json({ itinerary: itineraryData, fallback: false, source: "gemini" });
   } catch (error: any) {
-    console.error("Gemini itinerary generation error:", error);
-    const fallbackItinerary = generateFallbackItinerary(
-      req.body.prompt || "",
-      req.body.language || "vi",
-      req.body.duration || "4-7"
-    );
-    return res.json({ itinerary: fallbackItinerary, fallback: true, error: error.message });
+    console.warn("Gemini call fell back to tailored synthesizer:", error?.message || error);
+    const tailoredPlan = synthesizeTailoredItinerary(wish);
+    return res.json({ itinerary: tailoredPlan, fallback: true, source: "ai_synthesizer", error: error.message });
   }
 });
 
@@ -581,33 +632,76 @@ Please update the itinerary accordingly. Return strictly valid JSON with this ex
   ]
 }`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.8-flash",
-      contents: promptText,
-      config: {
-        systemInstruction,
-        responseMimeType: "application/json",
-        temperature: 0.7,
-      },
-    });
+    // Dual model cascade for tweak
+    let response: any = null;
+    try {
+      const geminiCall = ai.models.generateContent({
+        model: "gemini-3.8-flash",
+        contents: promptText,
+        config: {
+          systemInstruction,
+          responseMimeType: "application/json",
+          temperature: 0.7,
+        },
+      });
+      const timeoutCall = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Timeout 15s")), 15000)
+      );
+      response = await Promise.race([geminiCall, timeoutCall]);
+    } catch (primaryErr: any) {
+      console.warn("Tweak primary model busy, trying gemini-3.1-flash-lite:", primaryErr?.message);
+      try {
+        const fallbackCall = ai.models.generateContent({
+          model: "gemini-3.1-flash-lite",
+          contents: promptText,
+          config: {
+            systemInstruction,
+            responseMimeType: "application/json",
+            temperature: 0.7,
+          },
+        });
+        const timeoutCall2 = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Timeout 10s")), 10000)
+        );
+        response = await Promise.race([fallbackCall, timeoutCall2]);
+      } catch (secErr) {
+        console.warn("Secondary tweak also busy:", secErr);
+      }
+    }
 
     let updatedPlan = null;
-    try {
-      if (response.text) {
-        updatedPlan = JSON.parse(response.text.trim());
+    if (response && response.text) {
+      let rawText = response.text.trim();
+      if (rawText.startsWith("```json")) {
+        rawText = rawText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+      } else if (rawText.startsWith("```")) {
+        rawText = rawText.replace(/^```\s*/, "").replace(/\s*```$/, "");
       }
-    } catch (e) {
-      console.warn("Parse error in itinerary-tweak:", e);
+      try {
+        updatedPlan = JSON.parse(rawText);
+      } catch (e) {
+        console.warn("Parse error in itinerary-tweak:", e);
+      }
     }
 
     if (!updatedPlan || !Array.isArray(updatedPlan.days)) {
-      return res.json({ itinerary: currentPlan, fallback: true });
+      // Graceful smart tweak fallback: apply note directly to plan
+      const patchedPlan = {
+        ...currentPlan,
+        overview: `${currentPlan.overview || ''} (Đã tinh chỉnh theo mong muốn: "${tweakInstruction}")`,
+        specialTip: `💡 Lưu ý theo yêu cầu của bạn: ${tweakInstruction}.`,
+      };
+      return res.json({ itinerary: patchedPlan, fallback: true, source: "smart_patch" });
     }
 
     return res.json({ itinerary: updatedPlan, fallback: false });
   } catch (error: any) {
-    console.error("Gemini itinerary tweak error:", error);
-    return res.status(500).json({ error: error.message || "Tweak failed" });
+    console.warn("Itinerary tweak fallback to patch:", error?.message || error);
+    const patchedPlan = {
+      ...req.body.currentPlan,
+      overview: `${req.body.currentPlan?.overview || ''} (Đã tinh chỉnh theo mong muốn: "${req.body.tweakInstruction || ''}")`,
+    };
+    return res.json({ itinerary: patchedPlan, fallback: true });
   }
 });
 

@@ -23,6 +23,19 @@ import {
   X,
   Volume2,
   VolumeX,
+  MapPin,
+  Users,
+  Heart,
+  Camera,
+  Coffee,
+  Utensils,
+  ChevronRight,
+  ArrowRight,
+  Search,
+  SlidersHorizontal,
+  Layers,
+  Settings2,
+  Tag,
 } from 'lucide-react';
 import { Language } from '../types';
 import { useAuth } from '../context/AuthContext';
@@ -135,6 +148,61 @@ const ITINERARY_PRESETS: PresetSuggestion[] = [
     duration: '4-7',
     style: 'heritage',
   },
+];
+
+export const POPULAR_DESTINATIONS = [
+  { id: 'Đà Lạt', nameVi: 'Đà Lạt', label: '🌸 Thành phố hoa & Săn mây', code: 'DLI', tag: 'Cao nguyên se lạnh' },
+  { id: 'Phú Quốc', nameVi: 'Phú Quốc', label: '🏝️ Đảo ngọc & Biển trong vắt', code: 'PQC', tag: 'Nghỉ dưỡng biển' },
+  { id: 'Đà Nẵng - Hội An', nameVi: 'Đà Nẵng - Hội An', label: '🏖️ Biển Mỹ Khê & Phố đèn lồng', code: 'DAD', tag: 'Di sản & Biển' },
+  { id: 'Sa Pa', nameVi: 'Sa Pa', label: '⛰️ Đỉnh Fansipan & Bản làng', code: 'HAN', tag: 'Săn mây Tây Bắc' },
+  { id: 'Nha Trang', nameVi: 'Nha Trang', label: '🌊 Vịnh biển đẹp & VinWonders', code: 'CXR', tag: 'Vui chơi & Lặn san hô' },
+  { id: 'Hà Nội - Ninh Bình', nameVi: 'Hà Nội - Ninh Bình', label: '🚣 Tràng An, Hang Múa & Phố Cổ', code: 'HAN', tag: 'Văn hóa ngàn năm' },
+  { id: 'Cố Đô Huế', nameVi: 'Cố Đô Huế', label: '🏮 Đại Nội & Ca Huế sông Hương', code: 'HUI', tag: 'Cố đô di sản' },
+  { id: 'Miền Tây - Cần Thơ', nameVi: 'Miền Tây', label: '🛶 Chợ nổi Cái Răng & Miệt vườn', code: 'VCA', tag: 'Sông nước hữu tình' },
+  { id: 'Hạ Long', nameVi: 'Hạ Long', label: '⛵ Vịnh di sản & Du thuyền 5 sao', code: 'HPH', tag: 'Kỳ quan thế giới' },
+  { id: 'Hà Giang', nameVi: 'Hà Giang', label: '🏍️ Mã Pí Lèng & Sông Nho Quế', code: 'HAN', tag: 'Cung đèo hùng vĩ' },
+  { id: 'Quy Nhơn - Phú Yên', nameVi: 'Quy Nhơn', label: '🌅 Kỳ Co, Eo Gió & Gành Đá Đĩa', code: 'UIH', tag: 'Biển xanh hoang sơ' },
+];
+
+export const DEPARTURE_CITIES = [
+  { id: 'TP. Hồ Chí Minh (SGN)', labelVi: 'TP. Hồ Chí Minh (Sân bay Tân Sơn Nhất - SGN)', code: 'SGN' },
+  { id: 'Hà Nội (HAN)', labelVi: 'Hà Nội (Sân bay Nội Bài - HAN)', code: 'HAN' },
+  { id: 'Đà Nẵng (DAD)', labelVi: 'Đà Nẵng (Sân bay Đà Nẵng - DAD)', code: 'DAD' },
+  { id: 'Cần Thơ (VCA)', labelVi: 'Cần Thơ (Sân bay Trà Nóc - VCA)', code: 'VCA' },
+  { id: 'Hải Phòng (HPH)', labelVi: 'Hải Phòng (Sân bay Cát Bi - HPH)', code: 'HPH' },
+];
+
+export const COMPANION_OPTIONS = [
+  { id: 'couple', icon: '💑', labelVi: 'Cặp đôi / Trăng mật', descVi: 'Lãng mạn, riêng tư, ăn tối view đẹp' },
+  { id: 'family_kids', icon: '👨‍👩‍👧‍👦', labelVi: 'Gia đình có trẻ nhỏ', descVi: 'Lịch nhẹ nhàng, khu vui chơi, resort' },
+  { id: 'family_seniors', icon: '👵', labelVi: 'Gia đình & Người lớn tuổi', descVi: 'Nghỉ dưỡng, văn hóa, không leo dốc' },
+  { id: 'friends', icon: '🎒', labelVi: 'Nhóm bạn trẻ / Phượt', descVi: 'Sống ảo, cafe đẹp, ăn đêm, vui hết nấc' },
+  { id: 'solo', icon: '🚶', labelVi: 'Du lịch độc hành', descVi: 'Tự do trải nghiệm, khám phá sâu sắc' },
+];
+
+export const INTEREST_OPTIONS = [
+  { id: 'food', icon: '🍜', labelVi: 'Ẩm thực & Food Tour đêm' },
+  { id: 'photo', icon: '📸', labelVi: 'Check-in sống ảo & Cà phê đẹp' },
+  { id: 'beach', icon: '🏖️', labelVi: 'Biển đảo & Lặn ngắm san hô' },
+  { id: 'culture', icon: '🏛️', labelVi: 'Di sản văn hóa & Làng nghề' },
+  { id: 'nature', icon: '⛰️', labelVi: 'Săn mây, Trekking & Thiên nhiên' },
+  { id: 'theme_park', icon: '🎢', labelVi: 'VinWonders & Công viên giải trí' },
+  { id: 'relaxation', icon: '💆', labelVi: 'Resort, Khoáng nóng & Spa' },
+];
+
+export const DURATION_OPTIONS = [
+  { days: 2, labelVi: '2N1Đ', fullVi: '2 Ngày 1 Đêm (Cuối tuần)' },
+  { days: 3, labelVi: '3N2Đ', fullVi: '3 Ngày 2 Đêm (Lý tưởng)', popular: true },
+  { days: 4, labelVi: '4N3Đ', fullVi: '4 Ngày 3 Đêm (Trọn vẹn)', popular: true },
+  { days: 5, labelVi: '5N4Đ', fullVi: '5 Ngày 4 Đêm (Thư thả)' },
+  { days: 6, labelVi: '6N5Đ', fullVi: '6 Ngày 5 Đêm (Khám phá sâu)' },
+  { days: 7, labelVi: '7N6Đ', fullVi: '7 Ngày 6 Đêm (Tour xuyên tuyến)' },
+];
+
+export const BUDGET_OPTIONS = [
+  { id: 'budget', icon: '🏷️', labelVi: 'Tiết kiệm', descVi: '~900k/ngày (Homestay, quán bản địa, xe máy)' },
+  { id: 'standard', icon: '💎', labelVi: 'Tiêu chuẩn', descVi: '~1.5tr/ngày (Khách sạn 3-4★, xe riêng/taxi, hải sản)' },
+  { id: 'luxury', icon: '👑', labelVi: 'Cao cấp', descVi: '~2.8tr/ngày (Resort 5★, ẩm thực fine dining, xe VIP)' },
 ];
 
 // Initial default AI-tailored itineraries to display immediately on first view
@@ -312,7 +380,19 @@ const INITIAL_PLANS: Record<Language, AiCustomItinerary> = {
 export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ currentLang }) => {
   const { openTravelokaModal, openBookingModal } = useAuth();
 
-  // AI Itinerary Generator State
+  // Mode & User Wish Studio State
+  const [creationMode, setCreationMode] = useState<'studio' | 'prompt'>('studio');
+  const [selectedDestination, setSelectedDestination] = useState<string>('Đà Lạt');
+  const [customDestinationText, setCustomDestinationText] = useState<string>('');
+  const [selectedDeparture, setSelectedDeparture] = useState<string>('TP. Hồ Chí Minh (SGN)');
+  const [selectedDays, setSelectedDays] = useState<number>(3);
+  const [selectedCompanion, setSelectedCompanion] = useState<string>('couple');
+  const [selectedInterests, setSelectedInterests] = useState<string[]>(['food', 'photo', 'nature']);
+  const [selectedBudgetTier, setSelectedBudgetTier] = useState<string>('standard');
+  const [specialWishNotes, setSpecialWishNotes] = useState<string>('');
+  const [loadingStage, setLoadingStage] = useState<number>(0);
+
+  // Backward compatible prompt states
   const [customPrompt, setCustomPrompt] = useState('');
   const [selectedDuration, setSelectedDuration] = useState<'1-3' | '4-7' | '10-14'>('4-7');
   const [selectedStyle, setSelectedStyle] = useState<string>('balanced');
@@ -342,6 +422,27 @@ export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ currentLang 
   const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+
+  // Helper to resolve departure airport code and destination airport for Traveloka actions
+  const getTravelokaRouteInfo = (specificDest?: string) => {
+    const rawDest =
+      specificDest ||
+      customDestinationText.trim() ||
+      selectedDestination ||
+      aiCustomPlan?.days[0]?.destination ||
+      'Đà Lạt';
+    const target = resolveDestinationAirport(rawDest);
+    const depMatch = selectedDeparture.match(/\(([A-Z]{3})\)/);
+    const depCode = depMatch ? depMatch[1] : 'SGN';
+    const safeOrigin = depCode === target.code ? (target.code === 'HAN' ? 'SGN' : 'HAN') : depCode;
+    return {
+      target,
+      originCode: safeOrigin,
+      destCode: target.code,
+      cityId: target.cityId,
+      cityVi: target.cityVi || rawDest,
+    };
+  };
 
   const handlePlayGeminiAudio = async (plan: AiCustomItinerary) => {
     if (isPlayingAudio && audioElement) {
@@ -395,37 +496,50 @@ export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ currentLang 
     }
   }, [currentLang, hasGeneratedCustom]);
 
-  // Handle AI generation when user enters prompt
-  const handleAskAiPlanner = async (
-    promptToUse?: string,
-    overrideDuration?: '1-3' | '4-7' | '10-14',
-    overrideStyle?: string
-  ) => {
-    const textPrompt = (promptToUse !== undefined ? promptToUse : customPrompt).trim();
-    if (!textPrompt) return;
-
-    if (promptToUse) {
-      setCustomPrompt(promptToUse);
-    }
-    if (overrideDuration) {
-      setSelectedDuration(overrideDuration);
-    }
-    if (overrideStyle) {
-      setSelectedStyle(overrideStyle);
-    }
+  // Handle AI generation when user enters prompt or clicks generate in studio
+  const handleAskAiPlanner = async (options?: {
+    dest?: string;
+    dep?: string;
+    days?: number;
+    comp?: string;
+    interestsList?: string[];
+    budget?: string;
+    notes?: string;
+    freePrompt?: string;
+    overrideDuration?: '1-3' | '4-7' | '10-14';
+    overrideStyle?: string;
+  }) => {
+    const dest = options?.dest || (customDestinationText.trim() || selectedDestination);
+    const dep = options?.dep || selectedDeparture;
+    const days = options?.days || selectedDays;
+    const comp = options?.comp || selectedCompanion;
+    const ints = options?.interestsList || selectedInterests;
+    const bud = options?.budget || selectedBudgetTier;
+    const notes = options?.notes !== undefined ? options.notes : specialWishNotes;
+    const freePrompt = options?.freePrompt !== undefined ? options.freePrompt : customPrompt;
 
     setIsAiLoading(true);
     setTweakMessage(null);
+    setLoadingStage(0);
+
+    const stageTimer = setInterval(() => {
+      setLoadingStage((prev) => (prev < 3 ? prev + 1 : prev));
+    }, 1100);
+
     try {
       const res = await fetch('/api/gemini/itinerary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: textPrompt,
+          destination: dest,
+          departureCity: dep,
+          durationDays: days,
+          companion: comp,
+          interests: ints,
+          budgetTier: bud,
+          specialNotes: notes,
+          prompt: freePrompt || `${dest} ${days} ngày khởi hành từ ${dep} đi cùng ${comp}`,
           language: currentLang,
-          duration: overrideDuration || selectedDuration,
-          travelStyle: overrideStyle || selectedStyle,
-          budget: selectedBudget,
         }),
       });
       const data = await res.json();
@@ -442,6 +556,7 @@ export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ currentLang 
     } catch (err) {
       console.error('Failed to generate AI itinerary:', err);
     } finally {
+      clearInterval(stageTimer);
       setIsAiLoading(false);
     }
   };
@@ -596,254 +711,456 @@ ${plan.days
         </div>
 
         {/* AI Travel Route Generator Box (Primary Interactive Control) */}
-        <div className="bg-gradient-to-br from-sky-800 via-indigo-700 to-teal-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-indigo-950/20 mb-10 border border-indigo-300/30 relative overflow-hidden">
+        <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-sky-950 rounded-3xl p-6 sm:p-8 text-white shadow-2xl shadow-indigo-950/40 mb-10 border border-indigo-400/30 relative overflow-hidden">
           {/* Background Decorative Accents */}
-          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-indigo-400/20 rounded-full blur-2xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-teal-400/20 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-teal-500/20 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="relative z-10 max-w-4xl mx-auto">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 text-white text-xs font-black backdrop-blur-xs border border-white/20 shadow-xs">
-                <Sparkles className="w-4 h-4 text-amber-300" />
-                <span>
-                  {currentLang === 'vi'
-                    ? 'GEMINI GENERATOR • TÍNH TOÁN THEO THỜI GIAN THỰC'
-                    : currentLang === 'ko'
-                    ? 'GEMINI GENERATOR • 실시간 지능형 루트 계산'
-                    : 'GEMINI GENERATOR • REAL-TIME AI ROUTING'}
+          <div className="relative z-10 max-w-5xl mx-auto">
+            {/* Header & Badges */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-white/10">
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/20 text-indigo-200 text-xs font-black backdrop-blur-xs border border-indigo-400/30 shadow-xs">
+                  <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+                  <span>
+                    {currentLang === 'vi'
+                      ? 'AI STUDIO • THIẾT KẾ LỘ TRÌNH THEO ĐÚNG Ý BẠN'
+                      : currentLang === 'ko'
+                      ? 'AI STUDIO • 나만의 맞춤 여행 코스 빌더'
+                      : 'AI STUDIO • CUSTOM ROUTE BUILDER'}
+                  </span>
+                </div>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-400/20 text-amber-300 text-[11px] font-bold border border-amber-300/30">
+                  <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+                  <span>Google Gemini 3.8 Flash</span>
                 </span>
-                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-indigo-950/40 text-amber-200 text-[11px] font-bold border border-white/10">
-                  <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
-                  <span>Gemini 3.8 Flash</span>
-                </span>
+              {/* Mode Switcher Tabs */}
+              <div className="inline-flex p-1 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 self-start sm:self-auto">
                 <button
                   type="button"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="text-xs font-bold text-sky-100 hover:text-white cursor-pointer flex items-center gap-1.5 self-start sm:self-auto bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-xl border border-white/15 transition-colors"
+                  onClick={() => setCreationMode('studio')}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                    creationMode === 'studio'
+                      ? 'bg-amber-400 text-slate-950 shadow-md'
+                      : 'text-sky-200 hover:text-white'
+                  }`}
                 >
-                  <Sliders className="w-3.5 h-3.5 text-amber-300" />
-                  <span>
-                    {showFilters
-                      ? (currentLang === 'vi' ? 'Ẩn tùy chọn nâng cao' : currentLang === 'ko' ? '세부 필터 접기' : 'Hide filters')
-                      : (currentLang === 'vi' ? 'Tùy chỉnh thời lượng & phong cách' : currentLang === 'ko' ? '일정·스타일 세부 선택' : 'Duration & style filters')}
-                  </span>
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>{currentLang === 'vi' ? 'Thiết Kế Chi Tiết' : currentLang === 'ko' ? '세부 맞춤 설계' : 'Custom Studio'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCreationMode('prompt')}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                    creationMode === 'prompt'
+                      ? 'bg-amber-400 text-slate-950 shadow-md'
+                      : 'text-sky-200 hover:text-white'
+                  }`}
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>{currentLang === 'vi' ? 'Nhập Nhanh Prompt' : currentLang === 'ko' ? '자유 프롬프트' : 'Quick Prompt'}</span>
                 </button>
               </div>
             </div>
 
-            <h3 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight">
-              {currentLang === 'vi'
-                ? 'Nhập Lộ Trình Bạn Muốn, AI Sẽ Lên Kế Hoạch Ngay Lập Tức'
-                : currentLang === 'ko'
-                ? '원하시는 여행 코스를 입력하시면 AI가 맞춤 일정을 세워드립니다'
-                : 'Describe Your Dream Route, AI Plans Every Detail'}
-            </h3>
-            <p className="text-xs sm:text-sm text-sky-100 mt-1.5 leading-relaxed max-w-3xl">
-              {currentLang === 'vi'
-                ? 'Bạn muốn đi phượt xe máy ngắm đèo, du lịch gia đình có trẻ nhỏ, nghỉ dưỡng resort biển, hay tour ẩm thực đường phố? Hãy nhập vào ô dưới đây:'
-                : currentLang === 'ko'
-                ? '가족 여행, 모터바이크 어드벤처, 휴양지 리조트, 로컬 맛집 투어 등 원하는 여행 방식을 적어주시면 AI가 최적의 일정과 경비를 계산해 드립니다.'
-                : 'Tell AI your destinations, companion style, budget, or preferred activities. Receive a complete morning-to-night guide with real budget estimates!'}
-            </p>
-
-            {/* Input Form */}
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleAskAiPlanner();
-              }}
-              className="mt-5 flex flex-col sm:flex-row gap-2.5"
-            >
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  value={customPrompt}
-                  onChange={(e) => setCustomPrompt(e.target.value)}
-                  placeholder={
-                    currentLang === 'vi'
-                      ? 'Nhập lộ trình bạn muốn (Ví dụ: "Gia đình 4 người đi Đà Nẵng - Hội An 4 ngày 3 đêm thích tắm biển và ăn đặc sản")...'
-                      : currentLang === 'ko'
-                      ? '원하시는 일정을 적어주세요 (예: "부모님 모시고 4박 5일 다낭·호이안 힐링 여행 일정 짜줘")...'
-                      : 'Enter your desired route (e.g. "4 days in Central Vietnam with kids, beach & street food under $1000")...'
-                  }
-                  className="w-full px-4 py-3.5 pr-10 rounded-2xl bg-white text-slate-900 text-xs sm:text-sm placeholder:text-slate-400 focus:outline-hidden focus:ring-3 focus:ring-amber-300 shadow-md border-0"
-                />
-                {customPrompt && (
-                  <button
-                    type="button"
-                    onClick={() => setCustomPrompt('')}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                disabled={isAiLoading || !customPrompt.trim()}
-                className="px-6 py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-900/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0 hover:scale-102"
-              >
-                {isAiLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
-                    <span>
-                      {currentLang === 'vi'
-                        ? 'Gemini Đang Lập Lộ Trình...'
-                        : currentLang === 'ko'
-                        ? 'Gemini 일정 계산 중...'
-                        : 'Gemini Planning Route...'}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 text-slate-950" />
-                    <span>
-                      {currentLang === 'vi'
-                        ? 'Tạo Lộ Trình Cùng Gemini'
-                        : currentLang === 'ko'
-                        ? 'Gemini로 맞춤 일정 생성'
-                        : 'Generate with Gemini'}
-                    </span>
-                  </>
-                )}
-              </button>
-            </form>
-
-            {/* Optional Advanced Filters Tray */}
-            {showFilters && (
-              <div className="mt-4 p-4 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xs space-y-3 animate-in fade-in duration-200">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                  {/* Duration Category */}
-                  <div>
-                    <label className="block text-[11px] font-bold text-sky-200 mb-1.5">
-                      ⏱️ {currentLang === 'vi' ? 'Quỹ thời gian:' : currentLang === 'ko' ? '여행 기간:' : 'Duration:'}
+            {/* Mode 1: Interactive Wish Studio */}
+            {creationMode === 'studio' ? (
+              <div className="space-y-6">
+                {/* Section 1: Destination & Departure */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-black text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <MapPin className="w-4 h-4 text-amber-400" />
+                      <span>{currentLang === 'vi' ? '1. Chọn Điểm Đến Bạn Muốn Khám Phá' : currentLang === 'ko' ? '1. 여행 목적지 선택' : '1. Choose Destination'}</span>
                     </label>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {[
-                        { id: '1-3', label: currentLang === 'vi' ? '1 - 3 Ngày' : currentLang === 'ko' ? '1~3일' : '1-3 Days' },
-                        { id: '4-7', label: currentLang === 'vi' ? '4 - 7 Ngày' : currentLang === 'ko' ? '4~7일' : '4-7 Days' },
-                        { id: '10-14', label: currentLang === 'vi' ? '8 - 14 Ngày' : currentLang === 'ko' ? '8~14일' : '8-14 Days' },
-                      ].map((dur) => (
+                    <span className="text-[11px] text-sky-200">
+                      {currentLang === 'vi' ? 'Nhấn chọn địa danh bên dưới hoặc gõ tự do' : 'Click to select or type below'}
+                    </span>
+                  </div>
+
+                  {/* Destination Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 mb-3">
+                    {POPULAR_DESTINATIONS.map((dest) => {
+                      const isSelected = selectedDestination === dest.id && !customDestinationText;
+                      return (
                         <button
-                          key={dur.id}
+                          key={dest.id}
                           type="button"
-                          onClick={() => setSelectedDuration(dur.id as any)}
-                          className={`py-1.5 px-2 rounded-xl text-[11px] font-bold text-center transition-all cursor-pointer ${
-                            selectedDuration === dur.id
-                              ? 'bg-amber-400 text-slate-950 font-black shadow-xs'
-                              : 'bg-white/15 text-white hover:bg-white/25'
+                          onClick={() => {
+                            setSelectedDestination(dest.id);
+                            setCustomDestinationText('');
+                          }}
+                          className={`p-2.5 rounded-2xl text-left transition-all border cursor-pointer relative overflow-hidden ${
+                            isSelected
+                              ? 'bg-gradient-to-br from-amber-400 to-amber-500 text-slate-950 font-black border-amber-300 shadow-lg scale-102 ring-2 ring-amber-300'
+                              : 'bg-white/10 hover:bg-white/20 text-white border-white/15'
                           }`}
                         >
-                          {dur.label}
+                          <span className="text-xs font-extrabold block truncate leading-tight">{dest.nameVi}</span>
+                          <span className={`text-[10px] block mt-0.5 truncate ${isSelected ? 'text-slate-900 font-semibold' : 'text-sky-200'}`}>
+                            {dest.tag}
+                          </span>
                         </button>
-                      ))}
+                      );
+                    })}
+                  </div>
+
+                  {/* Custom destination input & Departure City in a row */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <Search className="w-4 h-4 text-slate-400" />
+                      </div>
+                      <input
+                        type="text"
+                        value={customDestinationText}
+                        onChange={(e) => {
+                          setCustomDestinationText(e.target.value);
+                          if (e.target.value) {
+                            setSelectedDestination(e.target.value);
+                          }
+                        }}
+                        placeholder={
+                          currentLang === 'vi'
+                            ? 'Hoặc gõ địa danh bất kỳ (Vũng Tàu, Côn Đảo, Buôn Ma Thuột...)'
+                            : 'Or type any destination in Vietnam...'
+                        }
+                        className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 focus:bg-white text-white focus:text-slate-900 text-xs sm:text-sm border border-white/20 focus:border-amber-400 placeholder:text-slate-400 focus:outline-hidden transition-all shadow-inner"
+                      />
+                    </div>
+
+                    {/* Departure City */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-sky-200 font-bold shrink-0">
+                        🛫 {currentLang === 'vi' ? 'Khởi hành từ:' : 'From:'}
+                      </span>
+                      <select
+                        value={selectedDeparture}
+                        onChange={(e) => setSelectedDeparture(e.target.value)}
+                        className="flex-1 py-2.5 px-3 rounded-2xl bg-white/15 hover:bg-white/20 text-white border border-white/25 text-xs font-bold focus:outline-hidden cursor-pointer"
+                      >
+                        {DEPARTURE_CITIES.map((c) => (
+                          <option key={c.id} value={c.id} className="bg-slate-900 text-white">
+                            {c.labelVi}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 2: Duration & Companion */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 pt-4 border-t border-white/10">
+                  {/* Duration Selector */}
+                  <div>
+                    <label className="text-xs font-black text-amber-300 uppercase tracking-wider block mb-2">
+                      ⏱️ {currentLang === 'vi' ? '2. Thời Lượng Chuyến Đi' : '2. Trip Duration'}
+                    </label>
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                      {DURATION_OPTIONS.map((dur) => {
+                        const isSelected = selectedDays === dur.days;
+                        return (
+                          <button
+                            key={dur.days}
+                            type="button"
+                            onClick={() => setSelectedDays(dur.days)}
+                            className={`py-2 px-1 rounded-2xl text-center transition-all border cursor-pointer ${
+                              isSelected
+                                ? 'bg-amber-400 text-slate-950 font-black border-amber-300 shadow-md scale-102 ring-2 ring-amber-300'
+                                : 'bg-white/10 hover:bg-white/20 text-white border-white/15'
+                            }`}
+                          >
+                            <span className="text-xs font-black block leading-none">{dur.labelVi}</span>
+                            {dur.popular && (
+                              <span className="text-[9px] font-bold text-amber-300 group-hover:text-amber-200 block mt-0.5">
+                                {isSelected ? '★ Chọn' : '★ Hot'}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
-                  {/* Travel Style */}
+                  {/* Companion Selector */}
                   <div>
-                    <label className="block text-[11px] font-bold text-sky-200 mb-1.5">
-                      ✨ {currentLang === 'vi' ? 'Phong cách trải nghiệm:' : currentLang === 'ko' ? '여행 테마:' : 'Travel Style:'}
+                    <label className="text-xs font-black text-amber-300 uppercase tracking-wider block mb-2">
+                      👥 {currentLang === 'vi' ? '3. Bạn Đồng Hành Cùng Ai?' : '3. Who Is Traveling?'}
                     </label>
-                    <select
-                      value={selectedStyle}
-                      onChange={(e) => setSelectedStyle(e.target.value)}
-                      className="w-full py-1.5 px-3 rounded-xl bg-slate-900/60 text-white border border-white/20 text-xs focus:outline-hidden"
-                    >
-                      <option value="balanced" className="bg-slate-900">{currentLang === 'vi' ? 'Cân bằng & Linh hoạt' : currentLang === 'ko' ? '균형 잡힌 일정' : 'Balanced & Flexible'}</option>
-                      <option value="family" className="bg-slate-900">{currentLang === 'vi' ? 'Gia đình có trẻ nhỏ / người lớn' : currentLang === 'ko' ? '가족 단위 힐링' : 'Family with kids / seniors'}</option>
-                      <option value="adventure" className="bg-slate-900">{currentLang === 'vi' ? 'Phượt xe máy & Mạo hiểm' : currentLang === 'ko' ? '어드벤처 & 모터바이크' : 'Adventure & Motorbike'}</option>
-                      <option value="resort" className="bg-slate-900">{currentLang === 'vi' ? 'Nghỉ dưỡng biển & Thư giãn' : currentLang === 'ko' ? '해변 리조트 휴양' : 'Seaside Resort & Relaxation'}</option>
-                      <option value="heritage" className="bg-slate-900">{currentLang === 'vi' ? 'Khám phá văn hóa & Di sản' : currentLang === 'ko' ? '문화재 & 유네스코 유산' : 'Culture & Heritage'}</option>
-                      <option value="backpack" className="bg-slate-900">{currentLang === 'vi' ? 'Tiết kiệm / Du lịch bụi' : currentLang === 'ko' ? '합리적 배낭여행' : 'Budget Backpacker'}</option>
-                    </select>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                      {COMPANION_OPTIONS.map((comp) => {
+                        const isSelected = selectedCompanion === comp.id;
+                        return (
+                          <button
+                            key={comp.id}
+                            type="button"
+                            onClick={() => setSelectedCompanion(comp.id)}
+                            className={`p-2 rounded-2xl text-left transition-all border cursor-pointer ${
+                              isSelected
+                                ? 'bg-indigo-500 text-white font-black border-indigo-300 shadow-md ring-2 ring-amber-300'
+                                : 'bg-white/10 hover:bg-white/20 text-white border-white/15'
+                            }`}
+                          >
+                            <span className="text-base block leading-none">{comp.icon}</span>
+                            <span className="text-[11px] font-bold block mt-1 leading-tight truncate">{comp.labelVi}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 3: Interests & Desires (Multi-select) */}
+                <div className="pt-4 border-t border-white/10">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-black text-amber-300 uppercase tracking-wider">
+                      🎯 {currentLang === 'vi' ? '4. Gu Trải Nghiệm & Sở Thích Của Bạn (Chọn nhiều)' : '4. Travel Interests & Desires'}
+                    </label>
+                    <span className="text-[11px] text-sky-200">
+                      {currentLang === 'vi' ? 'Đã chọn: ' : 'Selected: '}
+                      <strong className="text-amber-300 font-black">{selectedInterests.length}</strong>
+                    </span>
                   </div>
 
+                  <div className="flex flex-wrap gap-2">
+                    {INTEREST_OPTIONS.map((item) => {
+                      const isSelected = selectedInterests.includes(item.id);
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedInterests(selectedInterests.filter((x) => x !== item.id));
+                            } else {
+                              setSelectedInterests([...selectedInterests, item.id]);
+                            }
+                          }}
+                          className={`px-3 py-2 rounded-2xl text-xs font-bold transition-all border flex items-center gap-1.5 cursor-pointer ${
+                            isSelected
+                              ? 'bg-teal-400 text-slate-950 font-black border-teal-300 shadow-md ring-2 ring-teal-300 scale-102'
+                              : 'bg-white/10 hover:bg-white/20 text-white border-white/15'
+                          }`}
+                        >
+                          <span>{item.icon}</span>
+                          <span>{item.labelVi}</span>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-slate-950 ml-0.5 stroke-[3]" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Section 4: Budget Tier & Special Notes */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 pt-4 border-t border-white/10">
                   {/* Budget Tier */}
                   <div>
-                    <label className="block text-[11px] font-bold text-sky-200 mb-1.5">
-                      💰 {currentLang === 'vi' ? 'Mức ngân sách:' : currentLang === 'ko' ? '예산 수준:' : 'Budget tier:'}
+                    <label className="text-xs font-black text-amber-300 uppercase tracking-wider block mb-2">
+                      💰 {currentLang === 'vi' ? '5. Mức Ngân Sách Mong Muốn' : '5. Budget Tier'}
                     </label>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {[
-                        { id: 'budget', label: currentLang === 'vi' ? 'Tiết kiệm' : currentLang === 'ko' ? '실속형' : 'Budget' },
-                        { id: 'standard', label: currentLang === 'vi' ? 'Tiêu chuẩn' : currentLang === 'ko' ? '표준형' : 'Standard' },
-                        { id: 'luxury', label: currentLang === 'vi' ? 'Cao cấp' : currentLang === 'ko' ? '고급형' : 'Luxury' },
-                      ].map((b) => (
-                        <button
-                          key={b.id}
-                          type="button"
-                          onClick={() => setSelectedBudget(b.id)}
-                          className={`py-1.5 px-2 rounded-xl text-[11px] font-bold text-center transition-all cursor-pointer ${
-                            selectedBudget === b.id
-                              ? 'bg-teal-400 text-slate-950 font-black shadow-xs'
-                              : 'bg-white/15 text-white hover:bg-white/25'
-                          }`}
-                        >
-                          {b.label}
-                        </button>
-                      ))}
+                    <div className="grid grid-cols-3 gap-2">
+                      {BUDGET_OPTIONS.map((b) => {
+                        const isSelected = selectedBudgetTier === b.id;
+                        return (
+                          <button
+                            key={b.id}
+                            type="button"
+                            onClick={() => setSelectedBudgetTier(b.id)}
+                            className={`p-2.5 rounded-2xl text-left transition-all border cursor-pointer ${
+                              isSelected
+                                ? 'bg-amber-400 text-slate-950 font-black border-amber-300 shadow-md ring-2 ring-amber-300'
+                                : 'bg-white/10 hover:bg-white/20 text-white border-white/15'
+                            }`}
+                          >
+                            <span className="text-sm block">{b.icon}</span>
+                            <span className="text-xs font-black block mt-0.5 leading-tight">{b.labelVi}</span>
+                            <span className={`text-[10px] block mt-1 leading-tight ${isSelected ? 'text-slate-900 font-bold' : 'text-sky-200'}`}>
+                              {b.descVi.split('(')[0]}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
+                  </div>
+
+                  {/* Special Custom Notes */}
+                  <div>
+                    <label className="text-xs font-black text-amber-300 uppercase tracking-wider block mb-2">
+                      ✍️ {currentLang === 'vi' ? '6. Ghi Chú Mong Muốn Riêng (Nếu có)' : '6. Special Wish Notes'}
+                    </label>
+                    <input
+                      type="text"
+                      value={specialWishNotes}
+                      onChange={(e) => setSpecialWishNotes(e.target.value)}
+                      placeholder={
+                        currentLang === 'vi'
+                          ? 'Ví dụ: "Thích ăn lẩu gà lá é Tao Ngộ", "Thích cafe ngắm mây", "Bé 3 tuổi cần lịch nhẹ"...'
+                          : 'e.g. "Love sunset cafes", "Prefer local street food", "Traveling with 3yo kid"...'
+                      }
+                      className="w-full px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/15 focus:bg-white text-white focus:text-slate-900 text-xs sm:text-sm border border-white/20 focus:border-amber-400 placeholder:text-slate-400 focus:outline-hidden transition-all shadow-inner"
+                    />
+                  </div>
+                </div>
+
+                {/* Big Action Button */}
+                <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div className="text-xs text-sky-200 text-center sm:text-left">
+                    <span>
+                      {currentLang === 'vi'
+                        ? `Lộ trình dự kiến: ${selectedDestination} • ${selectedDays} Ngày • ${COMPANION_OPTIONS.find((c) => c.id === selectedCompanion)?.labelVi || ''}`
+                        : `Plan: ${selectedDestination} • ${selectedDays} Days`}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={isAiLoading}
+                    onClick={() => handleAskAiPlanner()}
+                    className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-sm transition-all flex items-center justify-center gap-2 shadow-xl shadow-amber-950/40 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:scale-102"
+                  >
+                    <Sparkles className="w-5 h-5 text-slate-950" />
+                    <span>
+                      {currentLang === 'vi'
+                        ? 'TẠO LỘ TRÌNH MAY ĐO CÙNG GEMINI AI'
+                        : currentLang === 'ko'
+                        ? 'GEMINI 맞춤 여행 일정 생성'
+                        : 'GENERATE CUSTOM ITINERARY WITH GEMINI'}
+                    </span>
+                    <ArrowRight className="w-4 h-4 text-slate-950 ml-1" />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Mode 2: Free Prompt Mode */
+              <div>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleAskAiPlanner({ freePrompt: customPrompt });
+                  }}
+                  className="mt-2 flex flex-col sm:flex-row gap-2.5"
+                >
+                  <div className="relative flex-1">
+                    <input
+                      type="text"
+                      value={customPrompt}
+                      onChange={(e) => setCustomPrompt(e.target.value)}
+                      placeholder={
+                        currentLang === 'vi'
+                          ? 'Nhập lộ trình bạn muốn (Ví dụ: "Gia đình 4 người đi Đà Nẵng - Hội An 4 ngày 3 đêm thích tắm biển và ăn đặc sản")...'
+                          : currentLang === 'ko'
+                          ? '원하시는 일정을 적어주세요 (예: "부모님 모시고 4박 5일 다낭·호이안 힐링 여행 일정 짜줘")...'
+                          : 'Enter your desired route (e.g. "4 days in Central Vietnam with kids, beach & street food under $1000")...'
+                      }
+                      className="w-full px-4 py-3.5 pr-10 rounded-2xl bg-white text-slate-900 text-xs sm:text-sm placeholder:text-slate-400 focus:outline-hidden focus:ring-3 focus:ring-amber-300 shadow-md border-0"
+                    />
+                    {customPrompt && (
+                      <button
+                        type="button"
+                        onClick={() => setCustomPrompt('')}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isAiLoading || !customPrompt.trim()}
+                    className="px-6 py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-900/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0 hover:scale-102"
+                  >
+                    <Sparkles className="w-4 h-4 text-slate-950" />
+                    <span>{currentLang === 'vi' ? 'Tạo Lộ Trình' : 'Generate'}</span>
+                  </button>
+                </form>
+
+                {/* Quick Preset Suggestion Chips */}
+                <div className="mt-4 pt-3.5 border-t border-white/20">
+                  <span className="text-[11px] font-bold text-sky-100 block mb-2">
+                    💡 {currentLang === 'vi' ? 'Gợi ý nhu cầu phổ biến (nhấn để AI lên lịch trình ngay):' : 'Popular suggestions (click to auto-generate):'}
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {ITINERARY_PRESETS.map((preset, index) => {
+                      const title =
+                        currentLang === 'vi' ? preset.titleVi : currentLang === 'ko' ? preset.titleKo : preset.titleEn;
+                      const prompt =
+                        currentLang === 'vi' ? preset.promptVi : currentLang === 'ko' ? preset.promptKo : preset.promptEn;
+
+                      return (
+                        <button
+                          key={index}
+                          type="button"
+                          disabled={isAiLoading}
+                          onClick={() => handleAskAiPlanner({ freePrompt: prompt, dest: title.split('(')[0]?.trim() })}
+                          className="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/30 text-white text-[11px] font-bold transition-all border border-white/20 flex items-center gap-1.5 cursor-pointer disabled:opacity-50 hover:scale-103"
+                        >
+                          <span>{preset.icon}</span>
+                          <span>{title}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
             )}
+          </div>
+        </div>
 
-            {/* Quick Preset Suggestion Chips */}
-            <div className="mt-4 pt-3.5 border-t border-white/20">
-              <span className="text-[11px] font-bold text-sky-100 block mb-2">
-                💡 {currentLang === 'vi' ? 'Gợi ý nhu cầu phổ biến (nhấn để AI lên lịch trình ngay):' : currentLang === 'ko' ? '인기 추천 테마 (클릭 시 AI 자동 생성):' : 'Popular suggestions (click to auto-generate):'}
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {ITINERARY_PRESETS.map((preset, index) => {
-                  const title =
-                    currentLang === 'vi' ? preset.titleVi : currentLang === 'ko' ? preset.titleKo : preset.titleEn;
-                  const prompt =
-                    currentLang === 'vi' ? preset.promptVi : currentLang === 'ko' ? preset.promptKo : preset.promptEn;
+        {/* Enhanced Dynamic Loading State Banner with Step Progress */}
+        {isAiLoading && (
+          <div className="bg-white rounded-3xl border-2 border-indigo-500 shadow-2xl p-6 sm:p-8 mb-10 transition-all animate-in fade-in duration-300">
+            <div className="max-w-2xl mx-auto text-center">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-500/30">
+                <Loader2 className="w-7 h-7 animate-spin text-white" />
+              </div>
+              <h4 className="text-lg sm:text-xl font-black text-slate-900">
+                {currentLang === 'vi'
+                  ? `Google Gemini Đang May Đo Lộ Trình ${customDestinationText.trim() || selectedDestination}...`
+                  : `Google Gemini is Crafting Your Route...`}
+              </h4>
+              <p className="text-xs text-slate-500 mt-1.5">
+                {currentLang === 'vi'
+                  ? `Đang thiết lập lịch trình ${selectedDays} ngày, xuất phát từ ${selectedDeparture}, phù hợp với ${COMPANION_OPTIONS.find((c) => c.id === selectedCompanion)?.labelVi || 'bạn'}.`
+                  : 'Synthesizing local intelligence, routes, and budget estimates...'}
+              </p>
 
+              {/* Progress Steps Checklist */}
+              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
+                {[
+                  { stage: 0, textVi: 'Phân tích điểm đến & phong cách đồng hành' },
+                  { stage: 1, textVi: 'Tối ưu hóa cung đường di chuyển & phương tiện' },
+                  { stage: 2, textVi: 'Tuyển chọn ẩm thực đặc sản & điểm check-in' },
+                  { stage: 3, textVi: 'Tính toán dự toán kinh phí & liên kết vé Traveloka' },
+                ].map((s) => {
+                  const isDone = loadingStage > s.stage;
+                  const isCurrent = loadingStage === s.stage;
                   return (
-                    <button
-                      key={index}
-                      type="button"
-                      disabled={isAiLoading}
-                      onClick={() => handleAskAiPlanner(prompt, preset.duration, preset.style)}
-                      className="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/30 text-white text-[11px] font-bold transition-all border border-white/20 flex items-center gap-1.5 cursor-pointer disabled:opacity-50 hover:scale-103"
+                    <div
+                      key={s.stage}
+                      className={`p-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all ${
+                        isDone
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                          : isCurrent
+                          ? 'bg-indigo-50 text-indigo-900 border-indigo-300 animate-pulse'
+                          : 'bg-slate-50 text-slate-400 border-slate-200 opacity-60'
+                      }`}
                     >
-                      <span>{preset.icon}</span>
-                      <span>{title}</span>
-                    </button>
+                      {isDone ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      ) : isCurrent ? (
+                        <Loader2 className="w-4 h-4 text-indigo-600 animate-spin shrink-0" />
+                      ) : (
+                        <span className="w-4 h-4 rounded-full border border-slate-300 shrink-0" />
+                      )}
+                      <span className="truncate">{s.textVi}</span>
+                    </div>
                   );
                 })}
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Loading State Banner */}
-        {isAiLoading && (
-          <div className="bg-white rounded-3xl border-2 border-indigo-500 shadow-xl p-8 mb-10 text-center animate-pulse">
-            <div className="w-14 h-14 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center mx-auto mb-4 shadow-xs">
-              <Sparkles className="w-7 h-7 animate-pulse text-indigo-600" />
-            </div>
-            <h4 className="text-lg font-black text-slate-900">
-              {currentLang === 'vi'
-                ? 'Google Gemini 3.8 Flash Đang Lên Kế Hoạch Lộ Trình...'
-                : currentLang === 'ko'
-                ? 'Google Gemini 3.8 Flash가 맞춤 일정을 설계 중입니다...'
-                : 'Google Gemini 3.8 Flash is Designing Your Route...'}
-            </h4>
-            <p className="text-xs text-slate-500 mt-1.5 max-w-md mx-auto">
-              {currentLang === 'vi'
-                ? 'Gemini đang phân tích điểm đến trên 63 tỉnh thành, kết nối cung đường tối ưu, chọn lọc ẩm thực bản địa và tính toán dự toán kinh phí chuẩn xác.'
-                : currentLang === 'ko'
-                ? 'Gemini가 베트남 63개 성·시 데이터베이스를 탐색하여 최적의 동선, 로컬 미식, 일자별 볼거리와 투명한 경비를 계산하고 있습니다.'
-                : 'Gemini is evaluating 63 Vietnam provinces data to optimize connections, dining spots, and calculate realistic daily budgets.'}
-            </p>
           </div>
         )}
 
@@ -856,17 +1173,23 @@ ${plan.days
             {/* Header of AI Result */}
             <div className="flex flex-col md:flex-row md:items-start justify-between pb-6 border-b border-sky-100 gap-4">
               <div>
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
                   <span className="px-3 py-1 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
                     <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                     <span>
                       {hasGeneratedCustom
-                        ? (currentLang === 'vi' ? 'Lộ Trình Tùy Chỉnh Google Gemini 3.8 Flash' : currentLang === 'ko' ? 'Google Gemini 3.8 Flash 맞춤 코스' : 'Google Gemini 3.8 Flash Custom Route')
+                        ? (currentLang === 'vi' ? 'Lộ Trình May Đo Google Gemini 3.8 Flash' : currentLang === 'ko' ? 'Google Gemini 3.8 Flash 맞춤 코스' : 'Google Gemini 3.8 Flash Custom Route')
                         : (currentLang === 'vi' ? 'Lộ Trình Chuẩn Thiết Kế Bởi Google Gemini' : currentLang === 'ko' ? 'Google Gemini 추천 코스' : 'Google Gemini Route')}
                     </span>
                   </span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-900 text-[10px] font-black">
+                    🛫 Khởi hành: {selectedDeparture.split(' (')[0]}
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-900 text-[10px] font-black">
+                    👥 {COMPANION_OPTIONS.find((c) => c.id === selectedCompanion)?.labelVi || selectedCompanion}
+                  </span>
                   <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-black uppercase">
-                    {aiCustomPlan.budgetLevel}
+                    💰 {aiCustomPlan.budgetLevel}
                   </span>
                   <span className="px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 text-[10px] font-black">
                     ⏱️ {aiCustomPlan.durationLabel}
@@ -971,13 +1294,11 @@ ${plan.days
                 <button
                   type="button"
                   onClick={() => {
-                    const firstDayDest = aiCustomPlan.days[0]?.destination || 'Đà Nẵng';
-                    const targetAirport = resolveDestinationAirport(firstDayDest);
-                    const originCode = targetAirport.code === 'HAN' ? 'SGN' : 'HAN';
+                    const route = getTravelokaRouteInfo();
                     openTravelokaModal('flight', {
-                      originCode,
-                      destCode: targetAirport.code,
-                      cityId: targetAirport.cityId,
+                      originCode: route.originCode,
+                      destCode: route.destCode,
+                      cityId: route.cityId,
                     });
                   }}
                   className="px-4 py-3 rounded-2xl bg-gradient-to-r from-[#0194f3] to-[#007ce8] hover:from-[#0082d6] hover:to-[#0064d2] text-white text-xs font-black transition-all shadow-md hover:scale-102 flex items-center justify-center gap-2 cursor-pointer border border-white/20"
@@ -993,7 +1314,9 @@ ${plan.days
                         : 'Traveloka Flights'}
                     </span>
                     <span className="text-[10px] text-amber-300 font-bold block">
-                      {currentLang === 'vi' ? 'Giá rẻ từ 580k • Xuất vé tức thì' : currentLang === 'ko' ? '최저가 보장 • 실시간 발권' : 'Best fares from 580k'}
+                      {currentLang === 'vi'
+                        ? `${getTravelokaRouteInfo().originCode} ➔ ${getTravelokaRouteInfo().destCode} • Từ 580k`
+                        : `${getTravelokaRouteInfo().originCode} ➔ ${getTravelokaRouteInfo().destCode} • Best Fares`}
                     </span>
                   </div>
                 </button>
@@ -1002,13 +1325,11 @@ ${plan.days
                 <button
                   type="button"
                   onClick={() => {
-                    const firstDayDest = aiCustomPlan.days[0]?.destination || 'Đà Nẵng';
-                    const targetAirport = resolveDestinationAirport(firstDayDest);
-                    const originCode = targetAirport.code === 'HAN' ? 'SGN' : 'HAN';
+                    const route = getTravelokaRouteInfo();
                     openTravelokaModal('combo', {
-                      originCode,
-                      destCode: targetAirport.code,
-                      cityId: targetAirport.cityId,
+                      originCode: route.originCode,
+                      destCode: route.destCode,
+                      cityId: route.cityId,
                     });
                   }}
                   className="px-4 py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 text-xs font-black transition-all shadow-md hover:scale-102 flex items-center justify-center gap-2 cursor-pointer border border-amber-300/40"
@@ -1032,100 +1353,94 @@ ${plan.days
             </div>
 
             {/* Traveloka Integrated Ticket & Hotel Booking Banner */}
-            <div className="mt-5 p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-sky-50 via-blue-50 to-indigo-50 border border-sky-200/90 shadow-sm">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#0194f3] to-[#0060b8] text-white flex items-center justify-center shadow-md shadow-sky-500/20 shrink-0">
-                    <Plane className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="px-2 py-0.5 rounded-full bg-[#0194f3] text-white text-[10px] font-black uppercase tracking-wider">
-                        Traveloka Partner
-                      </span>
-                      <span className="text-xs font-black text-slate-900">
-                        {currentLang === 'vi'
-                          ? `Đặt Vé Cho Lộ Trình: Đến ${aiCustomPlan.days[0]?.destination || 'Điểm đến'}`
-                          : `Book Tickets for this Itinerary: ${aiCustomPlan.days[0]?.destination || 'Destination'}`}
-                      </span>
+            {(() => {
+              const route = getTravelokaRouteInfo();
+              return (
+                <div className="mt-5 p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-sky-50 via-blue-50 to-indigo-50 border border-sky-200/90 shadow-sm">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#0194f3] to-[#0060b8] text-white flex items-center justify-center shadow-md shadow-sky-500/20 shrink-0">
+                        <Plane className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="px-2 py-0.5 rounded-full bg-[#0194f3] text-white text-[10px] font-black uppercase tracking-wider">
+                            Traveloka Partner
+                          </span>
+                          <span className="text-xs font-black text-slate-900">
+                            {currentLang === 'vi'
+                              ? `Đặt Vé Cho Lộ Trình: ${selectedDeparture.split(' (')[0]} ➔ ${route.cityVi} (${route.originCode} ➔ ${route.destCode})`
+                              : `Book Tickets for Route: ${route.originCode} ➔ ${route.destCode} (${route.cityVi})`}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-600 mt-0.5">
+                          {currentLang === 'vi'
+                            ? 'So sánh giá vé Vietnam Airlines, Vietjet, Bamboo • Xuất vé điện tử tức thì • Giảm thêm mã BAYVIETNAM50K'
+                            : 'Compare real-time fares from Vietnam Airlines, Vietjet, Bamboo • Instant E-ticket delivery'}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-[11px] text-slate-600 mt-0.5">
-                      {currentLang === 'vi'
-                        ? 'So sánh giá vé Vietnam Airlines, Vietjet, Bamboo • Xuất vé điện tử tức thì • Giảm thêm mã BAYVIETNAM50K'
-                        : 'Compare real-time fares from Vietnam Airlines, Vietjet, Bamboo • Instant E-ticket delivery'}
-                    </p>
+
+                    <div className="flex flex-wrap items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          openTravelokaModal('flight', {
+                            originCode: route.originCode,
+                            destCode: route.destCode,
+                            cityId: route.cityId,
+                          });
+                        }}
+                        className="px-3.5 py-2 rounded-xl bg-[#0194f3] hover:bg-[#0082d6] text-white text-xs font-black flex items-center gap-1.5 shadow-sm transition-all cursor-pointer hover:scale-102"
+                      >
+                        <Plane className="w-3.5 h-3.5" />
+                        <span>{currentLang === 'vi' ? 'Đặt Vé Bay' : currentLang === 'ko' ? '항공권 예약' : 'Book Flight'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          openTravelokaModal('combo', {
+                            originCode: route.originCode,
+                            destCode: route.destCode,
+                            cityId: route.cityId,
+                          });
+                        }}
+                        className="px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-sm transition-all cursor-pointer hover:scale-102"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-slate-950" />
+                        <span>{currentLang === 'vi' ? 'Combo Vé + Phòng -30%' : currentLang === 'ko' ? '콤보 -30%' : 'Combo -30%'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          openTravelokaModal('hotel', { cityId: route.cityId });
+                        }}
+                        className="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold border border-slate-200 flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                      >
+                        <Home className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>{currentLang === 'vi' ? 'Khách Sạn' : currentLang === 'ko' ? '호텔 예약' : 'Hotels'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          openBookingModal('flight', {
+                            originCode: route.originCode,
+                            destCode: route.destCode,
+                          });
+                        }}
+                        className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-200" />
+                        <span>{currentLang === 'vi' ? 'Xuất Vé Trong App' : currentLang === 'ko' ? '인앱 발권' : 'In-App Pass'}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
-
-                <div className="flex flex-wrap items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const firstDayDest = aiCustomPlan.days[0]?.destination || 'Đà Nẵng';
-                      const targetAirport = resolveDestinationAirport(firstDayDest);
-                      const originCode = targetAirport.code === 'HAN' ? 'SGN' : 'HAN';
-                      openTravelokaModal('flight', {
-                        originCode,
-                        destCode: targetAirport.code,
-                        cityId: targetAirport.cityId,
-                      });
-                    }}
-                    className="px-3.5 py-2 rounded-xl bg-[#0194f3] hover:bg-[#0082d6] text-white text-xs font-black flex items-center gap-1.5 shadow-sm transition-all cursor-pointer hover:scale-102"
-                  >
-                    <Plane className="w-3.5 h-3.5" />
-                    <span>{currentLang === 'vi' ? 'Đặt Vé Bay' : currentLang === 'ko' ? '항공권 예약' : 'Book Flight'}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const firstDayDest = aiCustomPlan.days[0]?.destination || 'Đà Nẵng';
-                      const targetAirport = resolveDestinationAirport(firstDayDest);
-                      const originCode = targetAirport.code === 'HAN' ? 'SGN' : 'HAN';
-                      openTravelokaModal('combo', {
-                        originCode,
-                        destCode: targetAirport.code,
-                        cityId: targetAirport.cityId,
-                      });
-                    }}
-                    className="px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-sm transition-all cursor-pointer hover:scale-102"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-slate-950" />
-                    <span>{currentLang === 'vi' ? 'Combo Vé + Phòng -30%' : currentLang === 'ko' ? '콤보 -30%' : 'Combo -30%'}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const firstDayDest = aiCustomPlan.days[0]?.destination || 'Đà Nẵng';
-                      const cityId = resolveDestinationCityId(firstDayDest);
-                      openTravelokaModal('hotel', { cityId });
-                    }}
-                    className="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold border border-slate-200 flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
-                  >
-                    <Home className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>{currentLang === 'vi' ? 'Khách Sạn' : currentLang === 'ko' ? '호텔 예약' : 'Hotels'}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const firstDayDest = aiCustomPlan.days[0]?.destination || 'Đà Nẵng';
-                      const targetAirport = resolveDestinationAirport(firstDayDest);
-                      const originCode = targetAirport.code === 'HAN' ? 'SGN' : 'HAN';
-                      openBookingModal('flight', {
-                        originCode,
-                        destCode: targetAirport.code,
-                      });
-                    }}
-                    className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-200" />
-                    <span>{currentLang === 'vi' ? 'Xuất Vé Trong App' : currentLang === 'ko' ? '인앱 발권' : 'In-App Pass'}</span>
-                  </button>
-                </div>
-              </div>
-            </div>
+              );
+            })()}
 
             {/* Interactive Google Gemini Route Tweak Box */}
             <div className="mt-6 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-blue-50/90 via-indigo-50/80 to-purple-50/70 border border-indigo-200/90 shadow-sm">
@@ -1343,12 +1658,11 @@ ${plan.days
                       <button
                         type="button"
                         onClick={() => {
-                          const airport = resolveDestinationAirport(day.destination);
-                          const origin = airport.code === 'HAN' ? 'SGN' : 'HAN';
+                          const route = getTravelokaRouteInfo(day.destination);
                           openTravelokaModal('flight', {
-                            originCode: origin,
-                            destCode: airport.code,
-                            cityId: airport.cityId,
+                            originCode: route.originCode,
+                            destCode: route.destCode,
+                            cityId: route.cityId,
                           });
                         }}
                         className="px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 text-[11px] font-bold border border-sky-200 transition-colors flex items-center gap-1 cursor-pointer"
@@ -1360,8 +1674,8 @@ ${plan.days
                       <button
                         type="button"
                         onClick={() => {
-                          const cityId = resolveDestinationCityId(day.destination);
-                          openTravelokaModal('hotel', { cityId });
+                          const route = getTravelokaRouteInfo(day.destination);
+                          openTravelokaModal('hotel', { cityId: route.cityId });
                         }}
                         className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-bold border border-emerald-200 transition-colors flex items-center gap-1 cursor-pointer"
                         title={currentLang === 'vi' ? `Tìm khách sạn Traveloka tại ${day.destination}` : currentLang === 'ko' ? `${day.destination} 호텔 검색` : `Search hotels in ${day.destination}`}
@@ -1372,8 +1686,8 @@ ${plan.days
                       <button
                         type="button"
                         onClick={() => {
-                          const cityId = resolveDestinationCityId(day.destination);
-                          openTravelokaModal('xperience', { cityId });
+                          const route = getTravelokaRouteInfo(day.destination);
+                          openTravelokaModal('xperience', { cityId: route.cityId });
                         }}
                         className="px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 text-[11px] font-bold border border-purple-200 transition-colors flex items-center gap-1 cursor-pointer"
                         title={currentLang === 'vi' ? `Tìm vé tham quan & tour tại ${day.destination}` : currentLang === 'ko' ? `${day.destination} 명소 입장권 검색` : `Search attractions in ${day.destination}`}
