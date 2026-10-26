@@ -40,6 +40,12 @@ import {
 import { Language } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { resolveDestinationAirport, resolveDestinationCityId } from '../data/travelokaData';
+import {
+  requestAiItinerary,
+  requestAiTweak,
+  requestDayAdvice,
+  requestAudioNarration,
+} from '../services/geminiClientService';
 
 export interface AiCustomDay {
   dayNumber: number;
@@ -453,21 +459,16 @@ export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ currentLang 
 
     setIsAudioLoading(true);
     try {
-      const res = await fetch('/api/gemini/itinerary-audio', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: plan.title,
-          overview: plan.overview,
-          language: currentLang,
-        }),
-      });
-      const data = await res.json();
-      if (data.audio) {
+      const audioBase64 = await requestAudioNarration(
+        plan.title,
+        plan.overview,
+        currentLang as 'vi' | 'ko' | 'en'
+      );
+      if (audioBase64) {
         if (audioElement) {
           audioElement.pause();
         }
-        const audio = new Audio(`data:audio/wav;base64,${data.audio}`);
+        const audio = new Audio(`data:audio/wav;base64,${audioBase64}`);
         audio.onended = () => setIsPlayingAudio(false);
         audio.onerror = () => setIsPlayingAudio(false);
         setAudioElement(audio);
@@ -527,24 +528,20 @@ export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ currentLang 
     }, 1100);
 
     try {
-      const res = await fetch('/api/gemini/itinerary', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          destination: dest,
-          departureCity: dep,
-          durationDays: days,
-          companion: comp,
-          interests: ints,
-          budgetTier: bud,
-          specialNotes: notes,
-          prompt: freePrompt || `${dest} ${days} ngày khởi hành từ ${dep} đi cùng ${comp}`,
-          language: currentLang,
-        }),
+      const plan = await requestAiItinerary({
+        destination: dest,
+        departureCity: dep,
+        durationDays: days,
+        companion: comp,
+        interests: ints,
+        budgetTier: bud,
+        specialNotes: notes,
+        prompt: freePrompt || `${dest} ${days} ngày khởi hành từ ${dep} đi cùng ${comp}`,
+        language: currentLang as 'vi' | 'ko' | 'en',
       });
-      const data = await res.json();
-      if (data.itinerary) {
-        setAiCustomPlan(data.itinerary);
+
+      if (plan && Array.isArray(plan.days) && plan.days.length > 0) {
+        setAiCustomPlan(plan);
         setHasGeneratedCustom(true);
         setTimeout(() => {
           const el = document.getElementById('ai-itinerary-result-section');
@@ -569,18 +566,13 @@ export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ currentLang 
     setIsTweaking(true);
     setTweakMessage(null);
     try {
-      const res = await fetch('/api/gemini/itinerary-tweak', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          currentPlan: aiCustomPlan,
-          tweakInstruction: instruction,
-          language: currentLang,
-        }),
-      });
-      const data = await res.json();
-      if (data.itinerary) {
-        setAiCustomPlan(data.itinerary);
+      const updatedPlan = await requestAiTweak(
+        aiCustomPlan,
+        instruction,
+        currentLang as 'vi' | 'ko' | 'en'
+      );
+      if (updatedPlan) {
+        setAiCustomPlan(updatedPlan);
         setHasGeneratedCustom(true);
         setTweakInstruction('');
         setTweakMessage(
@@ -614,22 +606,17 @@ export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ currentLang 
     });
 
     try {
-      const res = await fetch('/api/gemini/day-advice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          day,
-          destination: day.destination,
-          question: customQ || '',
-          language: currentLang,
-        }),
-      });
-      const data = await res.json();
+      const advice = await requestDayAdvice(
+        day,
+        day.destination,
+        customQ || '',
+        currentLang as 'vi' | 'ko' | 'en'
+      );
       setDayAdviceModal((prev) =>
         prev
           ? {
               ...prev,
-              advice: data.advice || '',
+              advice,
               isLoading: false,
             }
           : null

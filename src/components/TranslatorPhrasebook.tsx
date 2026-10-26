@@ -59,6 +59,7 @@ export const TranslatorPhrasebook: React.FC<TranslatorPhrasebookProps> = ({ curr
           userLang: currentLang,
         }),
       });
+      if (!res.ok) throw new Error('API unavailable');
       const data = await res.json();
       setTranslatedResult({
         text: data.translatedText || translateInput,
@@ -72,7 +73,7 @@ export const TranslatorPhrasebook: React.FC<TranslatorPhrasebookProps> = ({ curr
         ),
       });
     } catch (err) {
-      console.error(err);
+      console.warn('Translate API fallback invoked:', err);
       // Fallback
       setTranslatedResult({
         text: translateInput,
@@ -102,10 +103,11 @@ export const TranslatorPhrasebook: React.FC<TranslatorPhrasebookProps> = ({ curr
           language: currentLang,
         }),
       });
+      if (!res.ok) throw new Error('API unavailable');
       const data = await res.json();
       setQaAnswer(data.answer);
     } catch (err) {
-      console.error(err);
+      console.warn('Assistant API fallback invoked:', err);
       setQaAnswer(
         currentLang === 'vi'
           ? 'Việt Nam là điểm đến rất an toàn, người dân hiếu khách. Nếu có tình huống khẩn cấp, bạn có thể gọi 113 (Công an) hoặc liên hệ trung tâm hỗ trợ khách du lịch.'

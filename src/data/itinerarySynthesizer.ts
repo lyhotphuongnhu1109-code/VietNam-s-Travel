@@ -527,3 +527,85 @@ export function synthesizeTailoredItinerary(params: WishParams): SynthesizedItin
     },
   };
 }
+
+export function extractWishFromRequest(body: any): WishParams {
+  const p = (body.prompt || '').toLowerCase();
+
+  // Destination
+  let destination = body.destination;
+  if (!destination || typeof destination !== 'string' || !destination.trim()) {
+    if (p.includes('đà lạt') || p.includes('da lat')) destination = 'Đà Lạt';
+    else if (p.includes('phú quốc') || p.includes('phu quoc')) destination = 'Phú Quốc';
+    else if (p.includes('nha trang')) destination = 'Nha Trang';
+    else if (p.includes('đà nẵng') || p.includes('da nang') || p.includes('hội an') || p.includes('bà nà'))
+      destination = 'Đà Nẵng - Hội An';
+    else if (p.includes('sa pa') || p.includes('sapa') || p.includes('fansipan')) destination = 'Sa Pa';
+    else if (p.includes('ninh bình') || p.includes('tràng an')) destination = 'Hà Nội - Ninh Bình';
+    else if (p.includes('hà nội') || p.includes('hanoi')) destination = 'Hà Nội';
+    else if (p.includes('hạ long') || p.includes('vịnh hạ long')) destination = 'Hạ Long';
+    else if (p.includes('miền tây') || p.includes('cần thơ') || p.includes('bến tre'))
+      destination = 'Miền Tây - Cần Thơ';
+    else if (p.includes('hà giang') || p.includes('mã pí lèng')) destination = 'Hà Giang';
+    else if (p.includes('huế') || p.includes('cố đô')) destination = 'Cố Đô Huế';
+    else if (p.includes('quy nhơn') || p.includes('phú yên')) destination = 'Quy Nhơn - Phú Yên';
+    else destination = 'Đà Lạt';
+  }
+
+  // Duration
+  let durationDays = body.durationDays ? Number(body.durationDays) : 0;
+  if (!durationDays || isNaN(durationDays)) {
+    const daysMatch = p.match(/(\d+)\s*(ngày|ngay|days|일)/);
+    if (daysMatch && daysMatch[1]) {
+      durationDays = parseInt(daysMatch[1], 10);
+    } else if (body.duration === '1-3') {
+      durationDays = 3;
+    } else if (body.duration === '10-14') {
+      durationDays = 7;
+    } else {
+      durationDays = 4;
+    }
+  }
+  durationDays = Math.min(Math.max(durationDays, 2), 7);
+
+  // Companion
+  let companion = body.companion;
+  if (!companion) {
+    if (p.includes('người yêu') || p.includes('vợ chồng') || p.includes('cặp đôi') || p.includes('trăng mật'))
+      companion = 'couple';
+    else if (p.includes('trẻ nhỏ') || p.includes('con nhỏ') || p.includes('bé')) companion = 'family_kids';
+    else if (p.includes('bố mẹ') || p.includes('ông bà') || p.includes('người lớn tuổi') || p.includes('người già'))
+      companion = 'family_seniors';
+    else if (p.includes('bạn') || p.includes('nhóm') || p.includes('phượt')) companion = 'friends';
+    else if (p.includes('một mình') || p.includes('solo')) companion = 'solo';
+    else companion = 'couple';
+  }
+
+  // Interests
+  const interests: string[] = Array.isArray(body.interests) ? body.interests : [];
+  if (p.includes('ăn') || p.includes('hải sản') || p.includes('đặc sản') || p.includes('ẩm thực')) {
+    if (!interests.includes('food')) interests.push('food');
+  }
+  if (p.includes('ảnh') || p.includes('sống ảo') || p.includes('cafe') || p.includes('cà phê')) {
+    if (!interests.includes('photo')) interests.push('photo');
+  }
+  if (p.includes('biển') || p.includes('lặn') || p.includes('san hô') || p.includes('đảo')) {
+    if (!interests.includes('beach')) interests.push('beach');
+  }
+  if (p.includes('di sản') || p.includes('lịch sử') || p.includes('chùa') || p.includes('văn hóa')) {
+    if (!interests.includes('culture')) interests.push('culture');
+  }
+  if (p.includes('mây') || p.includes('đèo') || p.includes('trekking') || p.includes('núi')) {
+    if (!interests.includes('nature')) interests.push('nature');
+  }
+
+  return {
+    destination: destination.trim(),
+    departureCity: body.departureCity || 'TP. Hồ Chí Minh (SGN)',
+    durationDays,
+    companion,
+    interests,
+    budgetTier: body.budgetTier || body.budget || 'standard',
+    specialNotes: body.specialNotes || body.prompt || '',
+    language: body.language || 'vi',
+  };
+}
